@@ -1,0 +1,7 @@
+[
+{
+  "directory": "/Users/matt/prog/cpp/catchy/build",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++  -isystem /usr/local/include  -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk -fPIE -std=gnu++14 -o CMakeFiles/tests.dir/test.cpp.o -c /Users/matt/prog/cpp/catchy/test.cpp",
+  "file": "/Users/matt/prog/cpp/catchy/test.cpp"
+}
+]

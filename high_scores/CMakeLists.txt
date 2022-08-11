@@ -1,0 +1,24 @@
+# https://github.com/catchorg/Catch2/blob/devel/docs/cmake-integration.md#top
+
+cmake_minimum_required(VERSION 3.8)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# set This to equal Example
+set(This Catch2Example)
+
+# set up the project name with the languages it uses
+project(${This} CXX)
+
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+find_package(Catch2 3 REQUIRED)
+add_executable(tests test.cpp high_scores.cpp)
+target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
+
+add_executable(high_scores main.cpp high_scores.cpp)
+
+include(CTest)
+include(Catch)
+catch_discover_tests(tests)
