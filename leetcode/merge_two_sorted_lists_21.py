@@ -5,63 +5,20 @@ class ListNode:
         self.next = next
 
 class Solution:
-    def print_result(self, result):
-        node = result
-        while node is not None:
-            #print(f"{node.val}", end=" ")
-            node = node.next
-        #print()
-            
     def mergeTwoLists(self, list1, list2):
-        node1 = list1
-        node2 = list2
-        result = None
-        first = None
-        if node1 is not None:
-            if node2 is not None:
-                if node1.val <= node2.val:
-                    first = result = node1
-                    node1 = result.next = node1.next
-                else:
-                    first = result = node2
-                    node2 = result.next = node2.next
+        cur = dummy = ListNode()
+        while list1 and list2:
+            if list1.val < list2.val:
+                cur.next = list1
+                list1, cur = list1.next, list1
             else:
-                first = result = node1
-                result = result.next
-                node1 = node1.next
-        else:
-            if node2 is not None:
-                first = result = node2
-                result = result.next
-                node2 = node2.next
+                cur.next = list2
+                list2, cur = list2.next, list2
 
-        while node1 is not None or node2 is not None: 
-            if node1 is not None:
-                if node2 is not None:
-                    #print(f"two node available {node1.val} {node2.val}")
-                    if node1.val <= node2.val:
-                        result.next = node1
-                        result = result.next
-                        node1 = node1.next
-                    else:
-                        result.next = node2
-                        result = result.next
-                        node2 = node2.next
-                else:
-                    #print(f"only node1 available {node1.val}")
-                    result.next = node1
-                    result = result.next
-                    node1 = node1.next
-            else: # no node1 do we have only node2 left
-                if node2 is not None:
-                    #print(f"only node2 left")
-                    result.next = node2
-                    result = result.next
-                    node2 = node2.next
-            #self.print_result(first)
-        return first
+        if list1 or list2:
+            cur.next = list1 if list1 else list2
 
-# jam
+        return dummy.next
 
 def create_linked_list(python_list):
     node = None
