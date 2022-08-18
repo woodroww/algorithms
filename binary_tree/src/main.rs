@@ -3,7 +3,6 @@
 // maybe a revalation https://youtu.be/QkuNmL7tz08?t=4308
 
 use std::fmt::Display;
-use std::fmt::Debug;
 use std::collections::VecDeque;
 
 type NodeRef<T> = Option<Box<Node<T>>>;
@@ -110,25 +109,14 @@ where T: std::ops::AddAssign<i32> + Copy
 
 fn print_recursive<T: Display>(root: &NodeRef<T>, level: usize) {
     if let Some(node) = root {
-        print_recursive(&node.left, level + 1);
+        print_recursive(&node.right, level + 1);
         for _ in 0..level {
             print!("  ");
         }
         println!("{}", node.value);
-        print_recursive(&node.right, level + 1);
+        print_recursive(&node.left, level + 1);
     }
 }
-
-
-fn print_iterative<T: Display>(root: &NodeRef<T>) {
-    inorder_fun(root, |node, level| {
-        for _ in 0..level {
-            print!("  ");
-        }
-        println!("{}", node);
-    });
-}
-
 
 fn invert_tree<T: Clone>(root: &NodeRef<T>) -> NodeRef<T> {
     match root {
@@ -143,7 +131,24 @@ fn invert_tree<T: Clone>(root: &NodeRef<T>) -> NodeRef<T> {
     }
 }
 
-fn inorder_fun<T, F>(root: &NodeRef<T>, call_me: F)
+/*
+Algorithm Inorder(tree)
+   1. Traverse the left subtree, i.e., call Inorder(left-subtree)
+   2. Visit the root.
+   3. Traverse the right subtree, i.e., call Inorder(right-subtree)
+*/
+
+fn inorder_recursive<T: Display>(node: &Box<Node<T>>) {
+    if let Some(left) = &node.left {
+        inorder_recursive(&left);
+    }
+    print!("{} ", node.value);
+    if let Some(right) = &node.right {
+        inorder_recursive(&right);
+    }
+}
+
+fn inorder_iterative<T, F>(root: &NodeRef<T>, call_me: F)
 where T: Display, F: Fn(&T, usize)
 {
     if root.is_none() {
@@ -172,44 +177,35 @@ where T: Display, F: Fn(&T, usize)
     }
 }
 
-fn inorder_iterative<T>(root: &NodeRef<T>)
-where T: Display
+/*
+Algorithm Preorder(tree)
+   1. Visit the root.
+   2. Traverse the left subtree, i.e., call Preorder(left-subtree)
+   3. Traverse the right subtree, i.e., call Preorder(right-subtree) 
+*/
+fn preorder_recursive<T: Display>(node: &Box<Node<T>>) {
+    print!("{} ", node.value);
+    if let Some(left) = &node.left {
+        preorder_recursive(left);
+    }
+    if let Some(right) = &node.right {
+        preorder_recursive(right);
+    }
+}
+
+fn preorder_iterative<T, F>(root: &NodeRef<T>, call_me: F)
+where T: Display, F: Fn(&T, usize)
 {
     if root.is_none() {
         return;
     }
     let mut stack: Vec<&Box<Node<T>>> = Vec::new();
-    let mut current: Option<&Box<Node<T>>> = root.as_ref();
-
-    loop {
-        if current.is_some() {
-            let node = current.unwrap();
-            stack.push(node);
-            current = node.left.as_ref();
-        } else {
-            match stack.pop() {
-                Some(node) => {
-                    print!("{} ", node.value);
-                    current = node.right.as_ref();
-                }
-                None => {
-                    break;
-                }
-            }
-        }
-    }
-    println!();
-}
-
-fn preorder_iterative<T: Display>(root: &NodeRef<T>) {
-    if root.is_none() {
-        return;
-    }
-    let mut stack: Vec<&Box<Node<T>>> = Vec::new();
     stack.push(root.as_ref().unwrap());
+    let root_height = root.as_ref().unwrap().height().unwrap_or(0);
 
     while let Some(node) = stack.pop() {
-        print!("{} ", node.value);
+        let h = node.height().unwrap_or(0);
+        call_me(&node.value, root_height - h);
         if let Some(right) = node.right.as_ref() {
             stack.push(right);
         }
@@ -217,7 +213,23 @@ fn preorder_iterative<T: Display>(root: &NodeRef<T>) {
             stack.push(left);
         }
     }
-    println!();
+}
+
+/*
+Algorithm Postorder(tree)
+   1. Traverse the left subtree, i.e., call Postorder(left-subtree)
+   2. Traverse the right subtree, i.e., call Postorder(right-subtree)
+   3. Visit the root.
+*/
+
+fn postorder_resursive<T: Display>(node: &Box<Node<T>>) {
+    if let Some(left) = &node.left {
+        postorder_resursive(&left);
+    }
+    if let Some(right) = &node.right {
+        postorder_resursive(&right);
+    }
+    print!("{} ", node.value);
 }
 
 // ok this is going to be a little more complicated
@@ -229,15 +241,15 @@ fn preorder_iterative<T: Display>(root: &NodeRef<T>) {
 3. Print contents of second stack
 */
 
-fn postorder_iterative<T>(root: &NodeRef<T>)
-where T: Display
+fn postorder_iterative<T, F>(root: &NodeRef<T>, call_me: F)
+where T: Display, F: Fn(&T, usize)
 {
     if root.is_none() {
         return;
     }
     let mut stack: Vec<&Box<Node<T>>> = Vec::new();
     stack.push(root.as_ref().unwrap());
-
+    let root_height = root.as_ref().unwrap().height().unwrap_or(0);
     let mut stack_two: Vec<&Box<Node<T>>> = Vec::new();
 
     while let Some(node) = stack.pop() {
@@ -252,19 +264,24 @@ where T: Display
     }
 
     while let Some(node) = stack_two.pop() {
-        print!("{} ", node.value);
+        let h = node.height().unwrap_or(0);
+        call_me(&node.value, root_height - h);
     }
-    println!();
 }
 
-fn levelorder_iterative<T: Display>(root: &NodeRef<T>) {
+fn levelorder_iterative<T, F>(root: &NodeRef<T>, call_me: F)
+where T: Display, F: Fn(&T, usize)
+{
     let mut queue: VecDeque<&Node<T>> = VecDeque::new();
     queue.push_back(root.as_ref().unwrap());
+    let root_height = root.as_ref().unwrap().height().unwrap_or(0);
 
     while !queue.is_empty() {
         let node = queue.pop_front().unwrap();
-        // action here
-        print!("{} ", node.value);
+
+        let h = node.height().unwrap_or(0);
+        call_me(&node.value, root_height - h);
+
         if let Some(left) = &node.left {
             queue.push_back(left);
         }
@@ -272,7 +289,6 @@ fn levelorder_iterative<T: Display>(root: &NodeRef<T>) {
             queue.push_back(right);
         }
     }
-    println!();
 }
 
 fn levelorder_recursive<T: Display>(node: &NodeRef<T>) {
@@ -284,7 +300,6 @@ fn levelorder_recursive<T: Display>(node: &NodeRef<T>) {
     for i in 1..=h {
         node.print_level(i);
     }
-    println!();
 }
 
 
@@ -292,23 +307,56 @@ fn levelorder_recursive<T: Display>(node: &NodeRef<T>) {
 fn main() {
     let mut counter = 1;
     let tree = generate_tree(3, &mut counter);
-    //print_tree(&tree, 0);
     let inverted = invert_tree(&tree);
+
     println!("----print-recursive------------");
     print_recursive(&inverted, 0);
+
     println!("----print-iterative------------");
-    print_iterative(&inverted);
-    println!("----inorder--------------------");
-    inorder_iterative(&tree);
-    println!("----preorder-------------------");
-    preorder_iterative(&tree);
-    println!("----postorder------------------");
-    postorder_iterative(&tree);
+    inorder_iterative(&tree, |node, level| {
+        for _ in 0..level {
+            print!("  ");
+        }
+        println!("{}", node);
+    });
+
+    println!("----inorder-recursive----------");
+    inorder_recursive(tree.as_ref().unwrap());
+    println!();
+    println!("----inorder-iterative----------");
+    inorder_iterative(&tree, |node, _level| {
+        print!("{} ", node);
+    });
+    println!();
+
+    println!("----preorder-recursive---------");
+    preorder_recursive(tree.as_ref().unwrap());
+    println!();
+    println!("----preorder-iterative---------");
+    preorder_iterative(&tree, |node, _level| {
+        print!("{} ", node);
+    });
+    println!();
+
+    println!("----postorder-recursive--------");
+    postorder_resursive(tree.as_ref().unwrap());
+    println!();
+    println!("----postorder-iterative--------");
+    postorder_iterative(&tree, |node, _level| {
+        print!("{} ", node);
+    });
+    println!();
+
     println!("----levelorder-recursive-------");
     levelorder_recursive(&tree);
+    println!();
     println!("----levelorder-iterative-------");
-    levelorder_iterative(&tree);
+    levelorder_iterative(&tree, |node, _level| {
+        print!("{} ", node);
+    });
+    println!();
 
+    println!();
     println!("{} - height", tree.as_ref().unwrap().height_recursive().unwrap());
     println!("{} - height iterative", tree.as_ref().unwrap().height_iterative());
 }
