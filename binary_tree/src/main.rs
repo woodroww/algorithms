@@ -1,4 +1,7 @@
 // https://youtu.be/QkuNmL7tz08?t=2785
+
+// maybe a revalation https://youtu.be/QkuNmL7tz08?t=4308
+
 use std::fmt::{Display, Debug};
 
 type NodeRef<T> = Option<Box<Node<T>>>;
@@ -8,6 +11,47 @@ struct Node<T> {
     value: T,
     left: NodeRef<T>,
     right: NodeRef<T>,
+}
+
+impl<T: Display> Node<T> {
+    fn height(&self) -> Option<usize> {
+        let l_depth = match &self.left {
+            Some(left) => match left.height() {
+                Some(h) => h,
+                None => 0,
+            }
+            None => {
+                0
+            }
+        };
+        let r_depth = match &self.right {
+            Some(right) => match right.height() {
+                Some(h) => h,
+                None => 0,
+            }
+            None => {
+                0
+            }
+        };
+        if l_depth > r_depth {
+            Some(l_depth + 1)
+        } else {
+            Some(r_depth + 1)
+        }
+    }
+
+    fn print_level(&self, level: usize) {
+        if level == 1 {
+            print!("{} ", self.value);
+        } else if level > 1 {
+            if let Some(right) = self.right.as_ref() {
+                right.print_level(level - 1);
+            }
+            if let Some(left) = self.left.as_ref() {
+                left.print_level(level - 1);
+            }
+        }
+    }
 }
 
 fn generate_tree<T>(level: usize, counter: &mut T) -> NodeRef<T> 
@@ -55,36 +99,6 @@ where T: Display
     }
 }
 
-// max depth and height are the same yes?
-
-fn height<T>(node: &Box<Node<T>>) -> Option<usize> {
-
-    let l_depth = match &node.left {
-        Some(left) => match height(&left) {
-            Some(h) => h,
-            None => 0,
-        }
-        None => {
-            0
-        }
-    };
-
-    let r_depth = match &node.right {
-        Some(right) => match height(&right) {
-            Some(h) => h,
-            None => 0,
-        }
-        None => {
-            0
-        }
-    };
-
-    if l_depth > r_depth {
-        Some(l_depth + 1)
-    } else {
-        Some(r_depth + 1)
-    }
-}
 
 fn print_tree_iterative<T: Display>(root: &NodeRef<T>) {
     inorder_fun(root, |node, level| {
@@ -117,7 +131,7 @@ where T: Display, F: Fn(&T, usize)
     }
     let mut stack: Vec<&Box<Node<T>>> = Vec::new();
     let mut current: Option<&Box<Node<T>>> = root.as_ref();
-    let root_height = height(&root.as_ref().unwrap()).unwrap_or(0);
+    let root_height = root.as_ref().unwrap().height().unwrap_or(0);
     loop {
         if current.is_some() {
             let node = current.unwrap();
@@ -126,7 +140,7 @@ where T: Display, F: Fn(&T, usize)
         } else {
             match stack.pop() {
                 Some(node) => {
-                    let h = height(node).unwrap_or(0);
+                    let h = node.height().unwrap_or(0);
                     call_me(&node.value, root_height - h);
                     current = node.right.as_ref();
                 }
@@ -224,6 +238,17 @@ where T: Display
 }
 
 
+fn levelorder_traversal<T: Display>(node: &NodeRef<T>) {
+    if node.is_none() {
+        return;
+    }
+    let node = node.as_ref().unwrap();
+    let h = node.height().unwrap_or(0);
+    for i in 1..=h {
+        node.print_level(i);
+    }
+    println!();
+}
 
 
 fn main() {
@@ -241,6 +266,9 @@ fn main() {
     preorder_traversal(&tree);
     println!("----postorder------------------");
     postorder_traversal(&tree);
+    println!("----levelorder-----------------");
+    levelorder_traversal(&tree);
+
 }
 
 
