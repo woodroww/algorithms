@@ -2,15 +2,24 @@
 
 // maybe a revalation https://youtu.be/QkuNmL7tz08?t=4308
 
-use std::fmt::{Display, Debug};
+use std::fmt::Display;
+use std::fmt::Debug;
+use std::collections::VecDeque;
 
 type NodeRef<T> = Option<Box<Node<T>>>;
 
-#[derive(Debug, Default)]
+#[derive(Default)]
 struct Node<T> {
     value: T,
     left: NodeRef<T>,
     right: NodeRef<T>,
+}
+
+impl<T> std::fmt::Debug for Node<T>
+where T: Display {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.value)
+    }
 }
 
 impl<T: Display> Node<T> {
@@ -250,6 +259,34 @@ fn levelorder_traversal<T: Display>(node: &NodeRef<T>) {
     println!();
 }
 
+// We can use level order traversal to find height without recursion. The idea is to traverse level
+// by level. Whenever move down to a level, increment height by 1 (height is initialized as 0).
+// Count number of nodes at each level, stop traversing when the count of nodes at the next level
+// is 0. 
+
+fn height_iterative<T: Debug + Display + Copy>(root: &Box<Node<T>>) -> usize {
+    let mut queue: VecDeque<&Box<Node<T>>> = VecDeque::new();
+    queue.push_back(root);
+    let mut height = 0;
+    while !queue.is_empty() {
+        let mut node_count = queue.len();
+        while node_count > 0 {
+            let node = queue.pop_front().unwrap();
+            if let Some(left) = &node.left {
+                queue.push_back(left);
+            }
+            if let Some(right) = &node.right {
+                queue.push_back(right);
+            }
+            node_count -= 1;
+        }
+        height += 1;
+    }
+    height
+}
+
+
+
 
 fn main() {
     let mut counter = 1;
@@ -269,6 +306,8 @@ fn main() {
     println!("----levelorder-----------------");
     levelorder_traversal(&tree);
 
+    println!("{} - height", tree.as_ref().unwrap().height().unwrap());
+    println!("{} - height iterative", height_iterative(&tree.unwrap()));
 }
 
 
