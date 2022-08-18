@@ -1,5 +1,5 @@
 // https://youtu.be/QkuNmL7tz08?t=2785
-use std::fmt::Display;
+use std::fmt::{Display, Debug};
 
 type NodeRef<T> = Option<Box<Node<T>>>;
 
@@ -32,18 +32,69 @@ where T: std::ops::AddAssign<i32> + Copy
 fn print_tree<T>(root: &NodeRef<T>, level: usize)
 where T: Display
 {
-    // this here left and right are switched from main_recursive.rs
-    // now instead of mentally transposing the tree to see a top down view
-    // mentally rotate it instead
-    if let Some(node) = root {
-        print_tree(&node.left, level + 1);
+    let switch = false;
+
+    if switch {
+        if let Some(node) = root {
+            print_tree(&node.right, level + 1);
+            for _ in 0..level {
+                print!("  ");
+            }
+            println!("{}", node.value);
+            print_tree(&node.left, level + 1);
+        }
+    } else {
+        if let Some(node) = root {
+            print_tree(&node.left, level + 1);
+            for _ in 0..level {
+                print!("  ");
+            }
+            println!("{}", node.value);
+            print_tree(&node.right, level + 1);
+        }
+    }
+}
+
+// max depth and height are the same yes?
+fn height<T>(node: &NodeRef<T>) -> Option<usize> {
+    let node = match node {
+        Some(node) => node,
+        None => return None,
+    };
+    let l_depth = match height(&node.left) {
+        Some(depth) => depth,
+        None => 0,
+    };
+
+    let r_depth = match height(&node.right) {
+        Some(depth) => depth,
+        None => 0,
+    };
+
+    if l_depth > r_depth {
+        Some(l_depth + 1)
+    } else {
+        Some(r_depth + 1)
+    }
+}
+
+fn print_tree_iterative<T: Display>(root: &NodeRef<T>) {
+    let mut stack: Vec<(&Box<Node<T>>, usize)> = Vec::new();
+    stack.push((root.as_ref().unwrap(), 0));
+    while let Some((node, level)) = stack.pop() {
         for _ in 0..level {
             print!("  ");
         }
         println!("{}", node.value);
-        print_tree(&node.right, level + 1);
+        if let Some(left) = node.left.as_ref() {
+            stack.push((left, level + 1));
+        }
+        if let Some(right) = node.right.as_ref() {
+            stack.push((right, level + 1));
+        }
     }
 }
+
 
 fn invert_tree<T: Clone>(root: &NodeRef<T>) -> NodeRef<T> {
     match root {
@@ -54,6 +105,34 @@ fn invert_tree<T: Clone>(root: &NodeRef<T>) -> NodeRef<T> {
         })),
         None => {
             None
+        }
+    }
+}
+
+fn inorder_fun<T, F>(root: &NodeRef<T>, call_me: F)
+where T: Display, F: Fn(&T, usize)
+{
+    if root.is_none() {
+        return;
+    }
+    let mut stack: Vec<&Box<Node<T>>> = Vec::new();
+    let mut current: Option<&Box<Node<T>>> = root.as_ref();
+
+    loop {
+        if current.is_some() {
+            let node = current.unwrap();
+            stack.push(node);
+            current = node.left.as_ref();
+        } else {
+            match stack.pop() {
+                Some(node) => {
+                    call_me(&node.value, stack.len());
+                    current = node.right.as_ref();
+                }
+                None => {
+                    break;
+                }
+            }
         }
     }
 }
@@ -107,20 +186,37 @@ fn preorder_traversal<T: Display>(root: &NodeRef<T>) {
 }
 
 // ok this is going to be a little more complicated
-fn postorder_traversal<T: Display>(root: &NodeRef<T>) {
+/*
+1. Push root to first stack.
+2. Loop while first stack is not empty
+   2.1 Pop a node from first stack and push it to second stack
+   2.2 Push left and right children of the popped node to first stack
+3. Print contents of second stack
+*/
+
+fn postorder_traversal<T>(root: &NodeRef<T>)
+where T: Display
+{
     if root.is_none() {
         return;
     }
     let mut stack: Vec<&Box<Node<T>>> = Vec::new();
     stack.push(root.as_ref().unwrap());
 
+    let mut stack_two: Vec<&Box<Node<T>>> = Vec::new();
+
     while let Some(node) = stack.pop() {
-        if let Some(left) = node.left.as_ref() {
+        stack_two.push(node);
+
+        if let Some(left) = &node.left {
             stack.push(left);
         }
-        if let Some(right) = node.right.as_ref() {
+        if let Some(right) = &node.right {
             stack.push(right);
         }
+    }
+
+    while let Some(node) = stack_two.pop() {
         print!("{} ", node.value);
     }
     println!();
@@ -133,8 +229,11 @@ fn main() {
     let mut counter = 1;
     let tree = generate_tree(3, &mut counter);
     //print_tree(&tree, 0);
+    let inverted = invert_tree(&tree);
     println!("-----------------------");
-    print_tree(&invert_tree(&tree), 0);
+    print_tree(&inverted, 0);
+    println!("-----------------------");
+    print_tree_iterative(&inverted);
     println!("----inorder--------------------");
     inorder_traversal(&tree);
     println!("----preorder-------------------");
