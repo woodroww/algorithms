@@ -56,19 +56,27 @@ where T: Display
 }
 
 // max depth and height are the same yes?
-fn height<T>(node: &NodeRef<T>) -> Option<usize> {
-    let node = match node {
-        Some(node) => node,
-        None => return None,
-    };
-    let l_depth = match height(&node.left) {
-        Some(depth) => depth,
-        None => 0,
+
+fn height<T>(node: &Box<Node<T>>) -> Option<usize> {
+
+    let l_depth = match &node.left {
+        Some(left) => match height(&left) {
+            Some(h) => h,
+            None => 0,
+        }
+        None => {
+            0
+        }
     };
 
-    let r_depth = match height(&node.right) {
-        Some(depth) => depth,
-        None => 0,
+    let r_depth = match &node.right {
+        Some(right) => match height(&right) {
+            Some(h) => h,
+            None => 0,
+        }
+        None => {
+            0
+        }
     };
 
     if l_depth > r_depth {
@@ -79,20 +87,12 @@ fn height<T>(node: &NodeRef<T>) -> Option<usize> {
 }
 
 fn print_tree_iterative<T: Display>(root: &NodeRef<T>) {
-    let mut stack: Vec<(&Box<Node<T>>, usize)> = Vec::new();
-    stack.push((root.as_ref().unwrap(), 0));
-    while let Some((node, level)) = stack.pop() {
+    inorder_fun(root, |node, level| {
         for _ in 0..level {
             print!("  ");
         }
-        println!("{}", node.value);
-        if let Some(left) = node.left.as_ref() {
-            stack.push((left, level + 1));
-        }
-        if let Some(right) = node.right.as_ref() {
-            stack.push((right, level + 1));
-        }
-    }
+        println!("{}", node);
+    });
 }
 
 
@@ -117,7 +117,7 @@ where T: Display, F: Fn(&T, usize)
     }
     let mut stack: Vec<&Box<Node<T>>> = Vec::new();
     let mut current: Option<&Box<Node<T>>> = root.as_ref();
-
+    let root_height = height(&root.as_ref().unwrap()).unwrap_or(0);
     loop {
         if current.is_some() {
             let node = current.unwrap();
@@ -126,7 +126,8 @@ where T: Display, F: Fn(&T, usize)
         } else {
             match stack.pop() {
                 Some(node) => {
-                    call_me(&node.value, stack.len());
+                    let h = height(node).unwrap_or(0);
+                    call_me(&node.value, root_height - h);
                     current = node.right.as_ref();
                 }
                 None => {
