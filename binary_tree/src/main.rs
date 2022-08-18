@@ -23,9 +23,14 @@ where T: Display {
 }
 
 impl<T: Display> Node<T> {
+
     fn height(&self) -> Option<usize> {
+        self.height_recursive()
+    }
+
+    fn height_recursive(&self) -> Option<usize> {
         let l_depth = match &self.left {
-            Some(left) => match left.height() {
+            Some(left) => match left.height_recursive() {
                 Some(h) => h,
                 None => 0,
             }
@@ -34,7 +39,7 @@ impl<T: Display> Node<T> {
             }
         };
         let r_depth = match &self.right {
-            Some(right) => match right.height() {
+            Some(right) => match right.height_recursive() {
                 Some(h) => h,
                 None => 0,
             }
@@ -49,15 +54,36 @@ impl<T: Display> Node<T> {
         }
     }
 
+    fn height_iterative(&self) -> usize {
+        let mut queue: VecDeque<&Node<T>> = VecDeque::new();
+        queue.push_back(&self);
+        let mut height = 0;
+        while !queue.is_empty() {
+            let mut node_count = queue.len();
+            while node_count > 0 {
+                let node = queue.pop_front().unwrap();
+                if let Some(left) = &node.left {
+                    queue.push_back(left);
+                }
+                if let Some(right) = &node.right {
+                    queue.push_back(right);
+                }
+                node_count -= 1;
+            }
+            height += 1;
+        }
+        height
+    }
+
     fn print_level(&self, level: usize) {
         if level == 1 {
             print!("{} ", self.value);
         } else if level > 1 {
-            if let Some(right) = self.right.as_ref() {
-                right.print_level(level - 1);
-            }
             if let Some(left) = self.left.as_ref() {
                 left.print_level(level - 1);
+            }
+            if let Some(right) = self.right.as_ref() {
+                right.print_level(level - 1);
             }
         }
     }
@@ -82,34 +108,19 @@ where T: std::ops::AddAssign<i32> + Copy
     Some(Box::new(node))
 }
 
-fn print_tree<T>(root: &NodeRef<T>, level: usize)
-where T: Display
-{
-    let switch = false;
-
-    if switch {
-        if let Some(node) = root {
-            print_tree(&node.right, level + 1);
-            for _ in 0..level {
-                print!("  ");
-            }
-            println!("{}", node.value);
-            print_tree(&node.left, level + 1);
+fn print_recursive<T: Display>(root: &NodeRef<T>, level: usize) {
+    if let Some(node) = root {
+        print_recursive(&node.left, level + 1);
+        for _ in 0..level {
+            print!("  ");
         }
-    } else {
-        if let Some(node) = root {
-            print_tree(&node.left, level + 1);
-            for _ in 0..level {
-                print!("  ");
-            }
-            println!("{}", node.value);
-            print_tree(&node.right, level + 1);
-        }
+        println!("{}", node.value);
+        print_recursive(&node.right, level + 1);
     }
 }
 
 
-fn print_tree_iterative<T: Display>(root: &NodeRef<T>) {
+fn print_iterative<T: Display>(root: &NodeRef<T>) {
     inorder_fun(root, |node, level| {
         for _ in 0..level {
             print!("  ");
@@ -161,7 +172,7 @@ where T: Display, F: Fn(&T, usize)
     }
 }
 
-fn inorder_traversal<T>(root: &NodeRef<T>)
+fn inorder_iterative<T>(root: &NodeRef<T>)
 where T: Display
 {
     if root.is_none() {
@@ -190,7 +201,7 @@ where T: Display
     println!();
 }
 
-fn preorder_traversal<T: Display>(root: &NodeRef<T>) {
+fn preorder_iterative<T: Display>(root: &NodeRef<T>) {
     if root.is_none() {
         return;
     }
@@ -218,7 +229,7 @@ fn preorder_traversal<T: Display>(root: &NodeRef<T>) {
 3. Print contents of second stack
 */
 
-fn postorder_traversal<T>(root: &NodeRef<T>)
+fn postorder_iterative<T>(root: &NodeRef<T>)
 where T: Display
 {
     if root.is_none() {
@@ -246,8 +257,25 @@ where T: Display
     println!();
 }
 
+fn levelorder_iterative<T: Display>(root: &NodeRef<T>) {
+    let mut queue: VecDeque<&Node<T>> = VecDeque::new();
+    queue.push_back(root.as_ref().unwrap());
 
-fn levelorder_traversal<T: Display>(node: &NodeRef<T>) {
+    while !queue.is_empty() {
+        let node = queue.pop_front().unwrap();
+        // action here
+        print!("{} ", node.value);
+        if let Some(left) = &node.left {
+            queue.push_back(left);
+        }
+        if let Some(right) = &node.right {
+            queue.push_back(right);
+        }
+    }
+    println!();
+}
+
+fn levelorder_recursive<T: Display>(node: &NodeRef<T>) {
     if node.is_none() {
         return;
     }
@@ -259,33 +287,6 @@ fn levelorder_traversal<T: Display>(node: &NodeRef<T>) {
     println!();
 }
 
-// We can use level order traversal to find height without recursion. The idea is to traverse level
-// by level. Whenever move down to a level, increment height by 1 (height is initialized as 0).
-// Count number of nodes at each level, stop traversing when the count of nodes at the next level
-// is 0. 
-
-fn height_iterative<T: Debug + Display + Copy>(root: &Box<Node<T>>) -> usize {
-    let mut queue: VecDeque<&Box<Node<T>>> = VecDeque::new();
-    queue.push_back(root);
-    let mut height = 0;
-    while !queue.is_empty() {
-        let mut node_count = queue.len();
-        while node_count > 0 {
-            let node = queue.pop_front().unwrap();
-            if let Some(left) = &node.left {
-                queue.push_back(left);
-            }
-            if let Some(right) = &node.right {
-                queue.push_back(right);
-            }
-            node_count -= 1;
-        }
-        height += 1;
-    }
-    height
-}
-
-
 
 
 fn main() {
@@ -293,21 +294,23 @@ fn main() {
     let tree = generate_tree(3, &mut counter);
     //print_tree(&tree, 0);
     let inverted = invert_tree(&tree);
-    println!("-----------------------");
-    print_tree(&inverted, 0);
-    println!("-----------------------");
-    print_tree_iterative(&inverted);
+    println!("----print-recursive------------");
+    print_recursive(&inverted, 0);
+    println!("----print-iterative------------");
+    print_iterative(&inverted);
     println!("----inorder--------------------");
-    inorder_traversal(&tree);
+    inorder_iterative(&tree);
     println!("----preorder-------------------");
-    preorder_traversal(&tree);
+    preorder_iterative(&tree);
     println!("----postorder------------------");
-    postorder_traversal(&tree);
-    println!("----levelorder-----------------");
-    levelorder_traversal(&tree);
+    postorder_iterative(&tree);
+    println!("----levelorder-recursive-------");
+    levelorder_recursive(&tree);
+    println!("----levelorder-iterative-------");
+    levelorder_iterative(&tree);
 
-    println!("{} - height", tree.as_ref().unwrap().height().unwrap());
-    println!("{} - height iterative", height_iterative(&tree.unwrap()));
+    println!("{} - height", tree.as_ref().unwrap().height_recursive().unwrap());
+    println!("{} - height iterative", tree.as_ref().unwrap().height_iterative());
 }
 
 
