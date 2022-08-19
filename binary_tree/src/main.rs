@@ -86,6 +86,19 @@ impl<T: Display> Node<T> {
             }
         }
     }
+
+    fn print_recursive(&self, level: usize) {
+        if let Some(left) = &self.left {
+            left.print_recursive(level + 1);
+        }
+        for _ in 0..level {
+            print!("  ");
+        }
+        println!("{}", self.value);
+        if let Some(right) = &self.right {
+            right.print_recursive(level + 1);
+        }
+    }
 }
 
 fn generate_tree<T>(level: usize, counter: &mut T) -> NodeRef<T> 
@@ -107,16 +120,6 @@ where T: std::ops::AddAssign<i32> + Copy
     Some(Box::new(node))
 }
 
-fn print_recursive<T: Display>(root: &NodeRef<T>, level: usize) {
-    if let Some(node) = root {
-        print_recursive(&node.left, level + 1);
-        for _ in 0..level {
-            print!("  ");
-        }
-        println!("{}", node.value);
-        print_recursive(&node.right, level + 1);
-    }
-}
 
 fn invert_tree<T: Clone>(root: &NodeRef<T>) -> NodeRef<T> {
     match root {
@@ -308,10 +311,11 @@ fn main() {
     let mut counter = 1;
     let tree = generate_tree(3, &mut counter);
     //let inverted = invert_tree(&tree);
-    println!("left {}", tree.as_ref().unwrap().left.as_ref().unwrap().value);
+    let root = tree.as_ref().unwrap();
+    println!("left {}", root.left.as_ref().unwrap().value);
 
     println!("----print-recursive------------");
-    print_recursive(&tree, 0);
+    root.print_recursive(0);
 
     println!("----print-iterative------------");
     inorder_iterative(&tree, |node, level| {
