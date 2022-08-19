@@ -9,8 +9,8 @@
 # 
 # You may reuse elements of 'word_bank' as many times as needed.
 
-# can_construst(skateboard, [bo, rd, ate, t, ska, sk, boar]) -> false
-# can_construst(abcdef, [ab, abc, cd, def, abcd]) -> true
+# can_construct(skateboard, [bo, rd, ate, t, ska, sk, boar]) -> false
+# can_construct(abcdef, [ab, abc, cd, def, abcd]) -> true
 
 # Complexity
 # m = len(target)
