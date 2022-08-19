@@ -109,12 +109,12 @@ where T: std::ops::AddAssign<i32> + Copy
 
 fn print_recursive<T: Display>(root: &NodeRef<T>, level: usize) {
     if let Some(node) = root {
-        print_recursive(&node.right, level + 1);
+        print_recursive(&node.left, level + 1);
         for _ in 0..level {
             print!("  ");
         }
         println!("{}", node.value);
-        print_recursive(&node.left, level + 1);
+        print_recursive(&node.right, level + 1);
     }
 }
 
@@ -307,10 +307,11 @@ fn levelorder_recursive<T: Display>(node: &NodeRef<T>) {
 fn main() {
     let mut counter = 1;
     let tree = generate_tree(3, &mut counter);
-    let inverted = invert_tree(&tree);
+    //let inverted = invert_tree(&tree);
+    println!("left {}", tree.as_ref().unwrap().left.as_ref().unwrap().value);
 
     println!("----print-recursive------------");
-    print_recursive(&inverted, 0);
+    print_recursive(&tree, 0);
 
     println!("----print-iterative------------");
     inorder_iterative(&tree, |node, level| {

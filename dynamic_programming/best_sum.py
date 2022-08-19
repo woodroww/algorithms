@@ -32,14 +32,10 @@ def best_sum(target_sum, numbers):
         remainder = target_sum - num
         remainder_combo = best_sum(remainder, numbers)
         if remainder_combo is not None:
-            #remainder_combo.append(num)
             combo = remainder_combo.copy()
             combo.append(num)
-            if shortest is not None:
-                if len(combo) < len(shortest):
-                    shortest = combo
-            else:
-                shortest = combo
+            if shortest is None or (len(combo) < len(shortest)):
+                shortest = combo.copy()
     return shortest
 
 # the order of the desired result does matter, for comparing arrays
@@ -58,32 +54,23 @@ def memo_best_sum(target_sum, numbers, memo):
     shortest = None
     for num in numbers:
         remainder = target_sum - num
-        combo = memo_best_sum(remainder, numbers, memo)
-        if combo is not None:
-            print(f"appending {num}")
+        remainder_combo = memo_best_sum(remainder, numbers, memo)
+        if remainder_combo is not None:
+            combo = remainder_combo.copy()
             combo.append(num)
             if shortest is None or (len(combo) < len(shortest)):
                 shortest = combo.copy()
     memo[target_sum] = shortest
     return shortest
 
-
 memo = {}
 assert(memo_best_sum(7, [5, 3, 4, 7], memo) == [7])
 memo = {}
 assert(memo_best_sum(8, [2, 3, 5], memo) == [5, 3])
-
-# these two don't work
-# https://youtu.be/oBt53YbR9Kk?t=7730
 memo = {}
-result = memo_best_sum(8, [1, 4, 5], memo)
-print(result)
-assert(result == [4, 4])
-
+assert(memo_best_sum(8, [1, 4, 5], memo) == [4, 4])
 memo = {}
-result = memo_best_sum(100, [1, 2, 5, 25], memo)
-print(result)
-assert(result == [25, 25, 25, 25])
+assert(memo_best_sum(100, [1, 2, 5, 25], memo) == [25, 25, 25, 25])
 
 
 
