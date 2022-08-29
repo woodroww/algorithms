@@ -180,6 +180,59 @@ where T: Display, F: Fn(&T, usize)
     }
 }
 
+struct InOrderIterator<'a, T> {
+    stack: Vec<&'a Node<T>>,
+    current: Option<&'a Node<T>>,
+}
+
+impl<'a, T> InOrderIterator<'a, T> {
+    fn new(root: &'a Node<T>) -> Self {
+        Self {
+            stack: Vec::new(),
+            current: Some(root),
+        }
+    }
+}
+
+impl<'a, T> Iterator for InOrderIterator<'a, T> {
+    type Item = &'a T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            if self.current.is_some() {
+                let node = self.current.unwrap();
+                self.stack.push(node);
+                match &node.left {
+                    Some(left) => {
+                        self.current = Some(left.as_ref());
+                    }
+                    None => {
+                        self.current = None;
+                    }
+                }
+            } else {
+                match self.stack.pop() {
+                    Some(node) => {
+                        match &node.right {
+                            Some(right) => {
+                                self.current = Some(right.as_ref());
+                            }
+                            None => {
+                                self.current = None;
+                            }
+                        }
+                        return Some(&node.value);
+                    }
+                    None => {
+                        break;
+                    }
+                }
+            }
+        }
+        None
+    }
+}
+
 /*
 Algorithm Preorder(tree)
    1. Visit the root.
@@ -217,6 +270,39 @@ where T: Display, F: Fn(&T, usize)
         }
     }
 }
+
+struct PreOrderIterator<'a, T> {
+    stack: Vec<&'a Node<T>>,
+}
+
+impl<'a, T> PreOrderIterator<'a, T> {
+    fn new(root: &'a Node<T>) -> Self {
+        let mut i = Self {
+            stack: Vec::new(),
+        };
+        i.stack.push(root);
+        i
+    }
+}
+
+impl<'a, T> Iterator for PreOrderIterator<'a, T> {
+    type Item = &'a T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if let Some(node) = self.stack.pop() {
+            if let Some(right) = node.right.as_ref() {
+                self.stack.push(right);
+            }
+            if let Some(left) = node.left.as_ref() {
+                self.stack.push(left);
+            }
+            Some(&node.value)
+        } else {
+            None
+        }
+    }
+}
+
 
 /*
 Algorithm Postorder(tree)
@@ -401,6 +487,13 @@ fn main() {
         print!("{} ", node);
     });
     println!();
+    println!("----InOrderIterator------------");
+    let it = InOrderIterator::new(root);
+    for i in it {
+        print!("{} ", *i);
+    }
+    println!();
+    println!();
 
     println!("----preorder-recursive---------");
     preorder_recursive(tree.as_ref().unwrap());
@@ -409,6 +502,13 @@ fn main() {
     preorder_iterative(&tree, |node, _level| {
         print!("{} ", node);
     });
+    println!();
+    println!("----PreOrderIterator-----------");
+    let it = PreOrderIterator::new(root);
+    for i in it {
+        print!("{} ", *i);
+    }
+    println!();
     println!();
 
     println!("----postorder-recursive--------");
@@ -435,7 +535,6 @@ fn main() {
         print!("{} ", node);
     });
     println!();
-    println!();
     println!("----LevelOrderIterator---------");
     let it = LevelOrderIterator::new(root);
     for i in it {
@@ -446,10 +545,6 @@ fn main() {
     println!();
     println!("{} - height", tree.as_ref().unwrap().height_recursive().unwrap());
     println!("{} - height iterative", tree.as_ref().unwrap().height_iterative());
-
-
-
-
 }
 
 
