@@ -73,6 +73,68 @@ memo_how_sum(300, [7, 14], memo) # None
 print(memo)
 
 
+# Tabulation version
+# https://youtu.be/oBt53YbR9Kk?t=13984
+
+# m = target_sum
+# n = len(numbers)
+# O(m^2 * n) time, worst case array of m 1s
+# O(m^2) space
+
+def table_how_sum(target_sum, numbers):
+    table = [None for _ in range(target_sum + 1)]
+    #print(f"table:{table}")
+    table[0] = []
+    for i in range(len(table)):
+        if table[i] is not None:
+            for n in numbers:
+                if i + n < len(table):
+                    if table[i + n] is None:
+                        table[i + n] = []
+                    #print(f"i:{i} n:{n} i+n:{i+n} table[i]:{table[i]} table[i+n]:{table[i+n]}")
+                    table[i + n].append(n)
+                    table[i + n].extend(table[i])
+                #print(f"table:{table}")
+    return table #[target_sum]
+
+
+table_how_sum(7, [2, 3]) # [3, 2, 2]
+table_how_sum(7, [5, 3, 4]) # [3, 4], [4, 3]
+table_how_sum(7, [5, 3, 4, 7]) # [3, 4], [4, 3] or [7]
+table_how_sum(8, [2, 3, 5]) # [2, 2, 2, 2] or [3, 5]
+table_how_sum(7, [2, 4]) # None
+table_how_sum(0, [1, 2, 3]) # [] when target is 0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

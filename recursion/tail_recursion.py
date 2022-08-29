@@ -145,7 +145,22 @@ print(f"fibo_memo {50} = {fibo_memo(50, memo)}")
 print(memo)
 
 
+import time
 
+tic = time.perf_counter()
+print(tail_fibonacci(50))
+toc = time.perf_counter()
+tail_time = toc - tic
+print(tail_time)
+
+memo = {}
+tic = time.perf_counter()
+print(fibo_memo(50, memo))
+toc = time.perf_counter()
+memo_time = toc - tic
+print(memo_time)
+
+print(memo_time - tail_time)
 
 
 

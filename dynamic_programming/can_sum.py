@@ -65,3 +65,31 @@ assert(memo_can_sum(8, [2, 3, 5], memo) == True)
 memo = {}
 assert(memo_can_sum(300, [7, 14], memo) == False)
 
+
+# Tabulation solution
+# https://youtu.be/oBt53YbR9Kk?t=13080
+# m = targetSum
+# n = number.length
+# O(mn) time
+# O(m) space
+
+def table_can_sum(target_sum, numbers):
+    table = [False for _ in range(target_sum + 1)]
+    # table_can_sum(0, [...]) we can always answer target of 0 with True 
+    table[0] = True
+    for i in range(target_sum + 1):
+        if table[i] == True:
+            for n in numbers:
+                if i + n < len(table):
+                    table[i + n] = True
+    return table[target_sum]
+
+assert(table_can_sum(7, [2, 3]) == True)
+assert(table_can_sum(7, [5, 3, 4, 7]) == True)
+assert(table_can_sum(7, [2, 4]) == False)
+assert(table_can_sum(8, [2, 3, 5]) == True)
+assert(table_can_sum(300, [7, 14]) == False)
+
+
+
+

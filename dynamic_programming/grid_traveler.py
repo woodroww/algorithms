@@ -51,6 +51,45 @@ assert(memo_traveler(18, 18, memo) == 2333606220)
 
 
 
+# https://youtu.be/oBt53YbR9Kk?t=12140
+# grid tabulation
+
+# Say that you are a traveler on a 2D grid. You begin in the
+# top-left corner and your goal is to travel to the bottom-right
+# corner. You may only move down or right.
+# 
+# In how many ways can you travel to the goal on a grid with
+# dimensions m * n?
+# 
+# Write a function 'grid_traveler(m, n)' that calculates this.
+
+# (rows, cols)
+# grid_traveler(3, 3) -> 6
+
+# O(mn)
+# O(mn)
+
+# use a grid with an extra col on the right and an extra row on the top
+# then add the current to the right and lower cells
+def table_grid_traveler(rows, cols):
+    table = [[0 for _ in range(cols + 1)] for _ in range(rows + 1)] 
+    table[1][1] = 1
+    for i in range(rows + 1):
+        for j in range(cols + 1):
+            current = table[i][j]
+            if j + 1 <= cols:
+                table[i][j+1] += current
+            if i + 1 <= rows:
+                table[i+1][j] += current
+    return table[rows][cols]
+
+table_grid_traveler(1, 1) # 1
+table_grid_traveler(2, 3) # 3
+table_grid_traveler(3, 2) # 3
+table_grid_traveler(3, 3) # 6
+table_grid_traveler(18, 18) # 2333606220
+
+
 
 
 
