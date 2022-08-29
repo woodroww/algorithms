@@ -272,6 +272,43 @@ where T: Display, F: Fn(&T, usize)
     }
 }
 
+struct PostOrderIterator<'a, T> {
+    stack: Vec<&'a Node<T>>,
+    stack_two: Vec<&'a Node<T>>,
+}
+
+impl<'a, T> PostOrderIterator<'a, T> {
+    fn new(root: &'a Node<T>) -> Self {
+        let mut i = Self {
+            stack: Vec::new(),
+            stack_two: Vec::new(),
+        };
+        i.stack.push(root);
+        while let Some(node) = i.stack.pop() {
+            i.stack_two.push(node);
+            if let Some(left) = &node.left {
+                i.stack.push(left);
+            }
+            if let Some(right) = &node.right {
+                i.stack.push(right);
+            }
+        }
+        i
+    }
+}
+
+impl<'a, T> Iterator for PostOrderIterator<'a, T> {
+    type Item = &'a T;
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.stack_two.pop() {
+            Some(n) => Some(&n.value),
+            None => None,
+        }
+    }
+}
+
+
+
 fn levelorder_iterative<T, F>(root: &NodeRef<T>, call_me: F)
 where T: Display, F: Fn(&T, usize)
 {
@@ -305,6 +342,37 @@ fn levelorder_recursive<T: Display>(node: &NodeRef<T>) {
     }
 }
 
+struct LevelOrderIterator<'a, T> {
+    queue: VecDeque<&'a Node<T>>,
+}
+
+impl<'a, T> LevelOrderIterator<'a, T> {
+    fn new(root: &'a Node<T>) -> Self {
+        let mut i = Self {
+            queue: VecDeque::new(),
+        };
+        i.queue.push_back(root);
+        i
+    }
+}
+
+impl<'a, T> Iterator for LevelOrderIterator<'a, T> {
+    type Item = &'a T;
+    fn next(&mut self) -> Option<Self::Item> {
+        if !self.queue.is_empty() {
+            let node = self.queue.pop_front().unwrap();
+            if let Some(left) = &node.left {
+                self.queue.push_back(left);
+            }
+            if let Some(right) = &node.right {
+                self.queue.push_back(right);
+            }
+            Some(&node.value)
+        } else {
+            None
+        }
+    }
+}
 
 
 fn main() {
@@ -351,6 +419,13 @@ fn main() {
         print!("{} ", node);
     });
     println!();
+    println!("----PostOrderIterator----------");
+    let it = PostOrderIterator::new(root);
+    for i in it {
+        print!("{} ", *i);
+    }
+    println!();
+    println!();
 
     println!("----levelorder-recursive-------");
     levelorder_recursive(&tree);
@@ -360,10 +435,21 @@ fn main() {
         print!("{} ", node);
     });
     println!();
+    println!();
+    println!("----LevelOrderIterator---------");
+    let it = LevelOrderIterator::new(root);
+    for i in it {
+        print!("{} ", *i);
+    }
+    println!();
 
     println!();
     println!("{} - height", tree.as_ref().unwrap().height_recursive().unwrap());
     println!("{} - height iterative", tree.as_ref().unwrap().height_iterative());
+
+
+
+
 }
 
 
