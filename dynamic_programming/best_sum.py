@@ -73,8 +73,27 @@ memo = {}
 assert(memo_best_sum(100, [1, 2, 5, 25], memo) == [25, 25, 25, 25])
 
 
+# best_sum tabulation
+# https://youtu.be/oBt53YbR9Kk?t=14843
 
+def tabulation_best_sum(target_sum, numbers):
+    table = [None for _ in range(target_sum + 1)]
+    table[0] = []
+    for i in range(target_sum + 1):
+        if table[i] is not None:
+            for n in numbers:
+                if i+n < len(table):
+                    combo = table[i].copy()
+                    combo.append(n)
+                    if table[i+n] is None or (len(combo) < len(table[i+n])):
+                        table[i+n] = combo
+    return table[target_sum]
 
+assert(tabulation_best_sum(7, [5, 3, 4, 7]) == [7])
+assert(tabulation_best_sum(8, [2, 3, 5]) == [3, 5])
+assert(tabulation_best_sum(8, [1, 4, 5]) == [4, 4])
+assert(tabulation_best_sum(100, [1, 2, 5, 25]) == [25, 25, 25, 25])
+assert(tabulation_best_sum(100, [25, 2, 1, 5]) == [25, 25, 25, 25])
 
 
 

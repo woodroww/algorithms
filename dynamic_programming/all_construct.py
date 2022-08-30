@@ -100,5 +100,37 @@ memo = {}
 assert(memo_all_construct("aaaaaaaaaaaaaaaaaaaaaaaaaaax", ["a", "aa", "aaa", "aaaa", "aaaaa"], memo) == [])
 
 
+# https://youtu.be/oBt53YbR9Kk?t=17423
+# Tabulation
+# m = len(target)
+# n = len(word_bank)
+# O(n^m) time
+# O(n^m) space
+
+def tabulation_all_construct(target, word_bank):
+    table = []
+    for _ in range(len(target) + 1):
+        table.append([])
+    table[0].append([])
+    for i in range(len(target) + 1):
+        if table[i] is None or len(table[i]) > 0:
+            for word in word_bank:
+                if target[i:].find(word) == 0:
+                    for item in table[i]:
+                        jam = item.copy()
+                        jam.append(word)
+                        table[i + len(word)].append(jam)
+    return table[len(target)]
+
+
+assert(tabulation_all_construct("purple", ["purp", "p", "ur", "le", "purpl"]) == [['purp', 'le'], ['p', 'ur', 'p', 'le']])
+correct = [
+    ['abc', 'def'],
+    ['ab', 'c', 'def'],
+    ['abcd', 'ef'],
+    ['ab', 'cd', 'ef']
+]
+assert(tabulation_all_construct("abcdef", ["ab", "abc", "cd", "def", "abcd", "ef", "c"]) == correct)
+assert(tabulation_all_construct("skateboard", ["bo", "rd", "ate", "t", "ska", "sk", "boar"]) == [])
 
 

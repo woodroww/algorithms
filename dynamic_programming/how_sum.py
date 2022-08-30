@@ -81,6 +81,7 @@ print(memo)
 # O(m^2 * n) time, worst case array of m 1s
 # O(m^2) space
 
+# idk this doesn 't work
 def table_how_sum(target_sum, numbers):
     table = [None for _ in range(target_sum + 1)]
     #print(f"table:{table}")
@@ -104,37 +105,4 @@ table_how_sum(7, [5, 3, 4, 7]) # [3, 4], [4, 3] or [7]
 table_how_sum(8, [2, 3, 5]) # [2, 2, 2, 2] or [3, 5]
 table_how_sum(7, [2, 4]) # None
 table_how_sum(0, [1, 2, 3]) # [] when target is 0
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

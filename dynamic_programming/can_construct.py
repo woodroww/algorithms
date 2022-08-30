@@ -85,3 +85,38 @@ assert(memo_can_construct("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeef", [
     "eeeeee",
     ], memo) == False)
 
+
+
+# Tabulation solution
+# https://youtu.be/oBt53YbR9Kk?t=15653
+# m = target
+# n = len(word_back)
+# O(m^2 * n) time
+# O(m) space
+
+def tabulation_can_construct(target, word_bank):
+    table = [False for _ in range(len(target) + 1)]
+    table[0] = True
+    for i in range(len(target) + 1):
+        # substring that starts at 0 and goes to i - 1
+        if table[i] == True:
+            for word in word_bank:
+                if target[i:].find(word) == 0:
+                    table[i + len(word)] = True
+    return table[len(target)]
+
+
+assert(tabulation_can_construct("", ["cat", "dog", "mouse"]) == True)
+assert(tabulation_can_construct("abcdef", ["ab", "abc", "cd", "def", "abcd"]) == True)
+assert(tabulation_can_construct("skateboard", ["bo", "rd", "ate", "t", "ska", "sk", "boar"]) == False)
+assert(tabulation_can_construct("enterapotentpot", ["a", "p", "ent", "enter", "ot", "o", "t"]) == True)
+assert(tabulation_can_construct("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeef", [
+    "e",
+    "ee",
+    "eee",
+    "eeee",
+    "eeeee",
+    "eeeeee",
+    ]) == False)
+
+

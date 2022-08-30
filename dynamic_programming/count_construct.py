@@ -72,4 +72,34 @@ assert(memo_count_construct("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeef", [
     "eeeeee",
     ], memo) == 0)
 
+# https://youtu.be/oBt53YbR9Kk?t=16686
+
+# Tabulation
+# m = len(target)
+# n = len(word_bank)
+# O(m^2n) time
+# O(m) space
+
+def tabulation_count_construct(target, word_bank):
+    table = [0 for _ in range(len(target) + 1)]
+    table[0] = 1
+    for i in range(len(target) + 1):
+        if table[i] > 0:
+            for word in word_bank:
+                if target[i:].find(word) == 0:
+                    table[i + len(word)] += table[i]
+    return table[len(target)]
+
+
+assert(tabulation_count_construct("", ["cat", "dog", "mouse"]) == 1)
+assert(tabulation_count_construct("purple", ["purp", "p", "ur", "le", "purpl"]) == 2)
+assert(tabulation_count_construct("abcdef", ["ab", "abc", "cd", "def", "abcd"]) == 1)
+assert(tabulation_count_construct("skateboard", ["bo", "rd", "ate", "t", "ska", "sk", "boar"]) == 0)
+assert(tabulation_count_construct("enterapotentpot", ["a", "p", "ent", "enter", "ot", "o", "t"]) == 4)
+
+
+
+
+
+
 
