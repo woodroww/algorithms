@@ -21,8 +21,7 @@ where T: Display {
     }
 }
 
-impl<T: Display> Node<T> {
-
+impl<T> Node<T> {
     fn height(&self) -> Option<usize> {
         self.height_recursive()
     }
@@ -73,6 +72,10 @@ impl<T: Display> Node<T> {
         }
         height
     }
+
+}
+
+impl<T: Display> Node<T> {
 
     fn print_level(&self, level: usize) {
         if level == 1 {
@@ -151,8 +154,8 @@ fn inorder_recursive<T: Display>(node: &Box<Node<T>>) {
     }
 }
 
-fn inorder_iterative<T, F>(root: &NodeRef<T>, call_me: F)
-where T: Display, F: Fn(&T, usize)
+fn inorder_iterative<T, F>(root: &NodeRef<T>, mut call_me: F)
+where T: Display, F: FnMut(&T, usize)
 {
     if root.is_none() {
         return;
@@ -249,8 +252,8 @@ fn preorder_recursive<T: Display>(node: &Box<Node<T>>) {
     }
 }
 
-fn preorder_iterative<T, F>(root: &NodeRef<T>, call_me: F)
-where T: Display, F: Fn(&T, usize)
+fn preorder_iterative<T, F>(root: &NodeRef<T>, mut call_me: F)
+where T: Display, F: FnMut(&T, usize)
 {
     if root.is_none() {
         return;
@@ -311,14 +314,16 @@ Algorithm Postorder(tree)
    3. Visit the root.
 */
 
-fn postorder_resursive<T: Display>(node: &Box<Node<T>>) {
+fn postorder_recursive<T, F>(node: &Box<Node<T>>, mut call_me: F)
+where T: Display, F: FnMut(&T, usize)
+{
     if let Some(left) = &node.left {
-        postorder_resursive(&left);
+        postorder_recursive(&left, &mut call_me);
     }
     if let Some(right) = &node.right {
-        postorder_resursive(&right);
+        postorder_recursive(&right, &mut call_me);
     }
-    print!("{} ", node.value);
+    call_me(&node.value, 0);
 }
 
 // ok this is going to be a little more complicated
@@ -330,8 +335,8 @@ fn postorder_resursive<T: Display>(node: &Box<Node<T>>) {
 3. Print contents of second stack
 */
 
-fn postorder_iterative<T, F>(root: &NodeRef<T>, call_me: F)
-where T: Display, F: Fn(&T, usize)
+fn postorder_iterative<T, F>(root: &NodeRef<T>, mut call_me: F)
+where T: Display, F: FnMut(&T, usize)
 {
     if root.is_none() {
         return;
@@ -395,19 +400,14 @@ impl<'a, T> Iterator for PostOrderIterator<'a, T> {
 
 
 
-fn levelorder_iterative<T, F>(root: &NodeRef<T>, call_me: F)
-where T: Display, F: Fn(&T, usize)
+fn levelorder_iterative<T, F>(root: &NodeRef<T>, mut call_me: F)
+where F: FnMut(&T)
 {
     let mut queue: VecDeque<&Node<T>> = VecDeque::new();
     queue.push_back(root.as_ref().unwrap());
-    let root_height = root.as_ref().unwrap().height().unwrap_or(0);
-
     while !queue.is_empty() {
         let node = queue.pop_front().unwrap();
-
-        let h = node.height().unwrap_or(0);
-        call_me(&node.value, root_height - h);
-
+        call_me(&node.value);
         if let Some(left) = &node.left {
             queue.push_back(left);
         }
@@ -462,6 +462,155 @@ impl<'a, T> Iterator for LevelOrderIterator<'a, T> {
 
 
 fn main() {
+    println!("Hello Trees");
+    print_everything();
+}
+
+// -----------------------------------------------
+// iterative
+// -----------------------------------------------
+
+#[test]
+fn test_in_order_iterative() {
+    let mut counter: i32 = 1;
+    let tree = generate_tree(3, &mut counter);
+    let mut output: Vec<i32> = Vec::new();
+    inorder_iterative(&tree, |node_value, _level| {
+        output.push(*node_value);
+    });
+    assert_eq!(output, vec![3, 2, 4, 1, 6, 5, 7]);
+}
+
+#[test]
+fn test_pre_order_iterative() {
+    let mut counter: i32 = 1;
+    let tree = generate_tree(3, &mut counter);
+    let mut output: Vec<i32> = Vec::new();
+    preorder_iterative(&tree, |node_value, _level| {
+        output.push(*node_value);
+    });
+    assert_eq!(output, vec![1, 2, 3, 4, 5, 6, 7]);
+}
+
+#[test]
+fn test_post_order_iterative() {
+    let mut counter: i32 = 1;
+    let tree = generate_tree(3, &mut counter);
+    let mut output: Vec<i32> = Vec::new();
+    postorder_iterative(&tree, |node_value, _level| {
+        output.push(*node_value);
+    });
+    assert_eq!(output, vec![3, 4, 2, 6, 7, 5, 1]);
+}
+
+#[test]
+fn test_level_order_iterative() {
+    let mut counter: i32 = 1;
+    let tree = generate_tree(3, &mut counter);
+    let mut output: Vec<i32> = Vec::new();
+    levelorder_iterative(&tree, |node_value| {
+        output.push(*node_value);
+    });
+    assert_eq!(output, vec![1, 2, 5, 3, 4, 6, 7]);
+}
+
+// ----------------------------------------------------------
+
+#[test]
+fn test_in_order_iterator() {
+    let mut counter: i32 = 1;
+    let tree = generate_tree(3, &mut counter);
+    let root = tree.as_ref().unwrap();
+    let output: Vec<i32> = InOrderIterator::new(root)
+        .map(|x| x.to_owned())
+        .collect();
+    assert_eq!(output, vec![3, 2, 4, 1, 6, 5, 7]);
+}
+
+#[test]
+fn test_pre_order_iterator() {
+    let mut counter: i32 = 1;
+    let tree = generate_tree(3, &mut counter);
+    let root = tree.as_ref().unwrap();
+    let output: Vec<i32> = PreOrderIterator::new(root)
+        .map(|x| x.to_owned())
+        .collect();
+    assert_eq!(output, vec![1, 2, 3, 4, 5, 6, 7]);
+}
+
+#[test]
+fn test_post_order_iterator() {
+    let mut counter: i32 = 1;
+    let tree = generate_tree(3, &mut counter);
+    let root = tree.as_ref().unwrap();
+    let output: Vec<i32> = PostOrderIterator::new(root)
+        .map(|x| x.to_owned())
+        .collect();
+    assert_eq!(output, vec![3, 4, 2, 6, 7, 5, 1]);
+}
+
+#[test]
+fn test_level_order_iterator() {
+    let mut counter: i32 = 1;
+    let tree = generate_tree(3, &mut counter);
+    let root = tree.as_ref().unwrap();
+    let output: Vec<i32> = LevelOrderIterator::new(root)
+        .map(|x| x.to_owned())
+        .collect();
+    assert_eq!(output, vec![1, 2, 5, 3, 4, 6, 7]);
+}
+
+// -----------------------------------------------
+// recursive
+// -----------------------------------------------
+
+/*
+#[test]
+fn test_in_order_recursive() {
+    let mut counter: i32 = 1;
+    let tree = generate_tree(3, &mut counter).unwrap();
+    let mut output: Vec<i32> = Vec::new();
+    inorder_recursive(&tree, |node_value| {
+        output.push(*node_value);
+    });
+    assert_eq!(output, vec![3, 2, 4, 1, 6, 5, 7]);
+}
+
+#[test]
+fn test_pre_order_recursive() {
+    let mut counter: i32 = 1;
+    let tree = generate_tree(3, &mut counter).unwrap();
+    let mut output: Vec<i32> = Vec::new();
+    preorder_recursive(&tree, |node_value, _level| {
+        output.push(*node_value);
+    });
+    assert_eq!(output, vec![1, 2, 3, 4, 5, 6, 7]);
+}
+
+#[test]
+fn test_post_order_recursive() {
+    let mut counter: i32 = 1;
+    let tree = generate_tree(3, &mut counter).unwrap();
+    let mut output: Vec<i32> = Vec::new();
+    postorder_recursive(&tree, |node_value, _level| {
+        output.push(*node_value);
+    });
+    assert_eq!(output, vec![3, 4, 2, 6, 7, 5, 1]);
+}
+
+#[test]
+fn test_level_order_recursive() {
+    let mut counter: i32 = 1;
+    let tree = generate_tree(3, &mut counter);
+    let mut output: Vec<i32> = Vec::new();
+    levelorder_recursive(&tree, |node_value, _level| {
+        output.push(*node_value);
+    });
+    assert_eq!(output, vec![1, 2, 5, 3, 4, 6, 7]);
+}
+*/
+
+fn print_everything() {
     let mut counter = 1;
     let tree = generate_tree(3, &mut counter);
     //let inverted = invert_tree(&tree);
@@ -512,7 +661,9 @@ fn main() {
     println!();
 
     println!("----postorder-recursive--------");
-    postorder_resursive(tree.as_ref().unwrap());
+    postorder_recursive(tree.as_ref().unwrap(), |node, _level| {
+        print!("{} ", node);
+    });
     println!();
     println!("----postorder-iterative--------");
     postorder_iterative(&tree, |node, _level| {
@@ -531,7 +682,7 @@ fn main() {
     levelorder_recursive(&tree);
     println!();
     println!("----levelorder-iterative-------");
-    levelorder_iterative(&tree, |node, _level| {
+    levelorder_iterative(&tree, |node| {
         print!("{} ", node);
     });
     println!();
