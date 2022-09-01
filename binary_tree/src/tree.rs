@@ -3,11 +3,13 @@ use std::collections::VecDeque;
 
 type NodeRef<T> = Option<Box<Node<T>>>;
 
+/// A tree implementation
+
 #[derive(Default)]
 pub struct Node<T> {
-    value: T,
-    left: NodeRef<T>,
-    right: NodeRef<T>,
+    pub value: T,
+    pub left: NodeRef<T>,
+    pub right: NodeRef<T>,
 }
 
 impl<T> std::fmt::Debug for Node<T>
@@ -161,6 +163,7 @@ where T: Display, F: FnMut(&T, usize)
     }
 }
 
+/// An inorder iterator
 pub struct InOrderIterator<'a, T> {
     stack: Vec<&'a Node<T>>,
     current: Option<&'a Node<T>>,
@@ -481,6 +484,277 @@ pub fn invert_tree<T: Clone>(root: &NodeRef<T>) -> NodeRef<T> {
         })),
         None => None,
     }
+}
+// type NodeRef<T> = Option<Box<Node<T>>>;
+pub fn max_path_sum<T>(root: &NodeRef<T>) -> Option<T>
+where T: Ord + std::ops::Add<Output = T> + Clone
+{
+    if root.is_none() {
+        return None;
+    }
+    let root = root.as_ref().unwrap();
+    if root.left().is_none() && root.right.is_none() {
+        return Some(root.value().clone());
+    }
+    if root.left().is_some() && root.right.is_some() {
+        let left = max_path_sum(&root.left);
+        let right = max_path_sum(&root.right);
+        let max_child: T = std::cmp::max(left.unwrap(), right.unwrap());
+        let max_child_path_sum = root.value().clone();
+        return Some(max_child + max_child_path_sum);
+    }
+    if root.left().is_some() {
+        return Some(root.value().clone() + root.left().unwrap().value().clone());
+    } else {
+        return Some(root.value().clone() + root.right().unwrap().value().clone());
+    }
+}
+
+pub fn make_char_tree_3() -> Node<char> {
+//      a
+//       \
+//        b
+//       /
+//      c
+//    /  \
+//   x    d
+//         \
+//          e
+
+    let e = Node {
+        value: 'e',
+        left: None,
+        right: None,
+    };
+    let d = Node {
+        value: 'd',
+        left: None,
+        right: Some(Box::new(e)),
+    };
+    let x = Node {
+        value: 'x',
+        left: None,
+        right: None,
+    };
+    let c = Node {
+        value: 'c',
+        left: Some(Box::new(x)),
+        right: Some(Box::new(d)),
+    };
+    let b = Node {
+        value: 'b',
+        left: Some(Box::new(c)),
+        right: None,
+    };
+    let a = Node {
+        value: 'a',
+        left: None,
+        right: Some(Box::new(b)),
+    };
+    a
+}
+
+pub fn make_char_tree_2() -> Node<char> {
+//      a
+//    /   \
+//   b     c
+//  / \     \
+// d   e     f
+//    /       \
+//   g         h
+
+    let g = Node {
+        value: 'g',
+        left: None,
+        right: None,
+    };
+    let h = Node {
+        value: 'h',
+        left: None,
+        right: None,
+    };
+    let f = Node {
+        value: 'f',
+        left: None,
+        right: Some(Box::new(h)),
+    };
+    let e = Node {
+        value: 'e',
+        left: Some(Box::new(g)),
+        right: None,
+    };
+    let d = Node {
+        value: 'd',
+        left: None,
+        right: None,
+    };
+
+    let c = Node {
+        value: 'c',
+        left: None,
+        right: Some(Box::new(f)), 
+    };
+    let b = Node {
+        value: 'b',
+        left: Some(Box::new(d)),
+        right: Some(Box::new(e)), 
+    };
+
+    let a = Node {
+        value: 'a',
+        left: Some(Box::new(b)),
+        right: Some(Box::new(c)),
+    };
+    a
+}
+
+pub fn make_char_tree_1() -> Node<char> {
+//      a
+//    /   \
+//   b     c
+//  / \     \
+// d   e     f
+    let f = Node {
+        value: 'f',
+        left: None,
+        right: None,
+    };
+    let e = Node {
+        value: 'e',
+        left: None,
+        right: None,
+    };
+    let d = Node {
+        value: 'd',
+        left: None,
+        right: None,
+    };
+
+    let c = Node {
+        value: 'c',
+        left: None,
+        right: Some(Box::new(f)), 
+    };
+    let b = Node {
+        value: 'b',
+        left: Some(Box::new(d)),
+        right: Some(Box::new(e)), 
+    };
+
+    let a = Node {
+        value: 'a',
+        left: Some(Box::new(b)),
+        right: Some(Box::new(c)),
+    };
+    a
+}
+
+#[test]
+fn level_order_char_tree_1() {
+    let root = make_char_tree_1();
+    let output: Vec<char> = LevelOrderIterator::new(&root)
+        .map(|x| x.to_owned())
+        .collect();
+    assert_eq!(output, vec!['a', 'b', 'c', 'd', 'e', 'f']);
+}
+
+#[test]
+fn level_order_char_tree_2() {
+    let root = make_char_tree_2();
+    let output: Vec<char> = LevelOrderIterator::new(&root)
+        .map(|x| x.to_owned())
+        .collect();
+    assert_eq!(output, vec!['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']);
+}
+
+#[test]
+fn level_order_char_tree_3() {
+    let root = make_char_tree_3();
+    let output: Vec<char> = LevelOrderIterator::new(&root)
+        .map(|x| x.to_owned())
+        .collect();
+    assert_eq!(output, vec!['a', 'b', 'c', 'x', 'd', 'e']);
+}
+
+#[test]
+fn pre_order_char_tree_1() {
+    let root = make_char_tree_1();
+    let output: Vec<char> = PreOrderIterator::new(&root)
+        .map(|x| x.to_owned())
+        .collect();
+    assert_eq!(output, vec!['a', 'b', 'd', 'e', 'c', 'f']);
+}
+
+#[test]
+fn pre_order_char_tree_2() {
+    let root = make_char_tree_2();
+    let output: Vec<char> = PreOrderIterator::new(&root)
+        .map(|x| x.to_owned())
+        .collect();
+    assert_eq!(output, vec!['a', 'b', 'd', 'e', 'g', 'c', 'f', 'h']);
+}
+
+#[test]
+fn pre_order_char_tree_3() {
+    let root = make_char_tree_3();
+    let output: Vec<char> = PreOrderIterator::new(&root)
+        .map(|x| x.to_owned())
+        .collect();
+    assert_eq!(output, vec!['a', 'b', 'c', 'x', 'd', 'e']);
+}
+
+#[test]
+fn post_order_char_tree_1() {
+    let root = make_char_tree_1();
+    let output: Vec<char> = PostOrderIterator::new(&root)
+        .map(|x| x.to_owned())
+        .collect();
+    assert_eq!(output, vec!['d', 'e', 'b', 'f', 'c', 'a']);
+}
+
+#[test]
+fn post_order_char_tree_2() {
+    let root = make_char_tree_2();
+    let output: Vec<char> = PostOrderIterator::new(&root)
+        .map(|x| x.to_owned())
+        .collect();
+    assert_eq!(output, vec!['d', 'g', 'e', 'b', 'h', 'f', 'c', 'a']);
+}
+
+#[test]
+fn post_order_char_tree_3() {
+    let root = make_char_tree_3();
+    let output: Vec<char> = PostOrderIterator::new(&root)
+        .map(|x| x.to_owned())
+        .collect();
+    assert_eq!(output, vec!['x', 'e', 'd', 'c', 'b', 'a']);
+}
+
+#[test]
+fn in_order_char_tree_1() {
+    let root = make_char_tree_1();
+    let output: Vec<char> = InOrderIterator::new(&root)
+        .map(|x| x.to_owned())
+        .collect();
+    assert_eq!(output, vec!['d', 'b', 'e', 'a', 'c', 'f']);
+}
+
+#[test]
+fn in_order_char_tree_2() {
+    let root = make_char_tree_2();
+    let output: Vec<char> = InOrderIterator::new(&root)
+        .map(|x| x.to_owned())
+        .collect();
+    assert_eq!(output, vec!['d', 'b', 'g', 'e', 'a', 'c', 'f', 'h']);
+}
+
+#[test]
+fn in_order_char_tree_3() {
+    let root = make_char_tree_3();
+    let output: Vec<char> = InOrderIterator::new(&root)
+        .map(|x| x.to_owned())
+        .collect();
+    assert_eq!(output, vec!['a', 'x', 'c', 'd', 'e', 'b']);
 }
 
 // ---------------------------------------------------------------------------------------
