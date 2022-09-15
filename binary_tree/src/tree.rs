@@ -1,15 +1,16 @@
 use std::fmt::Display;
 use std::collections::VecDeque;
 
-type NodeRef<T> = Option<Box<Node<T>>>;
+type OptionNodeRef<T> = Option<Box<Node<T>>>;
+type NodeRef<T> = Box<Node<T>>;
 
 /// A tree implementation
 
 #[derive(Default)]
 pub struct Node<T> {
     pub value: T,
-    pub left: NodeRef<T>,
-    pub right: NodeRef<T>,
+    pub left: OptionNodeRef<T>,
+    pub right: OptionNodeRef<T>,
 }
 
 impl<T> std::fmt::Debug for Node<T>
@@ -114,6 +115,14 @@ impl<T: Display> Node<T> {
     }
 }
 
+/*
+pub fn tree_contains<T>(root: &OptionNodeRef<T>, item: T) -> bool {
+    let i = LevelOrderIterator::new(root);
+    false
+}*/
+
+
+
 // ---------------------------------------------------------------------------------------
 // In order
 // ---------------------------------------------------------------------------------------
@@ -124,6 +133,7 @@ Algorithm Inorder(tree)
    3. Traverse the right subtree, i.e., call Inorder(right-subtree)
 */
 
+/// print value using in order recursive function
 pub fn inorder_recursive<T: Display>(node: &Box<Node<T>>) {
     if let Some(left) = &node.left {
         inorder_recursive(&left);
@@ -134,7 +144,8 @@ pub fn inorder_recursive<T: Display>(node: &Box<Node<T>>) {
     }
 }
 
-pub fn inorder_iterative<T, F>(root: &NodeRef<T>, mut call_me: F)
+/// iterate in order with function
+pub fn inorder_iterative<T, F>(root: &OptionNodeRef<T>, mut call_me: F)
 where T: Display, F: FnMut(&T, usize)
 {
     if root.is_none() {
@@ -170,6 +181,7 @@ pub struct InOrderIterator<'a, T> {
 }
 
 impl<'a, T> InOrderIterator<'a, T> {
+    /// return a new iterator 
     pub fn new(root: &'a Node<T>) -> Self {
         Self {
             stack: Vec::new(),
@@ -237,7 +249,7 @@ pub fn preorder_recursive<T: Display>(node: &Box<Node<T>>) {
     }
 }
 
-pub fn preorder_iterative<T, F>(root: &NodeRef<T>, mut call_me: F)
+pub fn preorder_iterative<T, F>(root: &OptionNodeRef<T>, mut call_me: F)
 where T: Display, F: FnMut(&T, usize)
 {
     if root.is_none() {
@@ -259,11 +271,13 @@ where T: Display, F: FnMut(&T, usize)
     }
 }
 
+/// A pre order iterator
 pub struct PreOrderIterator<'a, T> {
     stack: Vec<&'a Node<T>>,
 }
 
 impl<'a, T> PreOrderIterator<'a, T> {
+    /// return a new iterator starting at root
     pub fn new(root: &'a Node<T>) -> Self {
         let mut i = Self {
             stack: Vec::new(),
@@ -321,7 +335,7 @@ where T: Display
 3. Print contents of second stack
 */
 
-pub fn postorder_iterative<T, F>(root: &NodeRef<T>, mut call_me: F)
+pub fn postorder_iterative<T, F>(root: &OptionNodeRef<T>, mut call_me: F)
 where T: Display, F: FnMut(&T, usize)
 {
     if root.is_none() {
@@ -391,7 +405,7 @@ impl<'a, T> Iterator for PostOrderIterator<'a, T> {
 Commentary
 */
 
-pub fn levelorder_recursive<T: Display>(node: &NodeRef<T>) {
+pub fn levelorder_recursive<T: Display>(node: &OptionNodeRef<T>) {
     if node.is_none() {
         return;
     }
@@ -402,7 +416,7 @@ pub fn levelorder_recursive<T: Display>(node: &NodeRef<T>) {
     }
 }
 
-pub fn levelorder_iterative<T, F>(root: &NodeRef<T>, mut call_me: F)
+pub fn levelorder_iterative<T, F>(root: &OptionNodeRef<T>, mut call_me: F)
 where F: FnMut(&T)
 {
     let mut queue: VecDeque<&Node<T>> = VecDeque::new();
@@ -452,10 +466,14 @@ impl<'a, T> Iterator for LevelOrderIterator<'a, T> {
 }
 
 // ---------------------------------------------------------------------------------------
-// 
+// generate_tree
 // ---------------------------------------------------------------------------------------
+// generate_tree with 3 will generate this:
+//     1
+//  2     5
+// 3 4   6 7
 
-pub fn generate_tree<T>(level: usize, counter: &mut T) -> NodeRef<T>
+pub fn generate_tree<T>(level: usize, counter: &mut T) -> OptionNodeRef<T>
 where
     T: std::ops::AddAssign<i32> + Copy,
 {
@@ -475,7 +493,11 @@ where
     Some(Box::new(node))
 }
 
-pub fn invert_tree<T: Clone>(root: &NodeRef<T>) -> NodeRef<T> {
+// ---------------------------------------------------------------------------------------
+// invert_tree 
+// ---------------------------------------------------------------------------------------
+
+pub fn invert_tree<T: Clone>(root: &OptionNodeRef<T>) -> OptionNodeRef<T> {
     match root {
         Some(node) => Some(Box::new(Node {
             value: node.value.clone(),
@@ -485,8 +507,11 @@ pub fn invert_tree<T: Clone>(root: &NodeRef<T>) -> NodeRef<T> {
         None => None,
     }
 }
+
+
+
 // type NodeRef<T> = Option<Box<Node<T>>>;
-pub fn max_path_sum<T>(root: &NodeRef<T>) -> Option<T>
+pub fn max_path_sum<T>(root: &OptionNodeRef<T>) -> Option<T>
 where T: Ord + std::ops::Add<Output = T> + Clone
 {
     if root.is_none() {

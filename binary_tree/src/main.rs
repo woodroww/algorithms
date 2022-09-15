@@ -9,12 +9,19 @@ use binary_tree::tree::*;
 
 fn main() {
     println!("Hello Trees");
-    //print_everything();
+    print_everything();
     let max = max_path_sum(&Some(Box::new(make_tree())));
     println!("max path sum {}", max.unwrap());
     let letters = make_char_tree_2();
     letters.print_recursive(0);
 }
+
+
+
+
+//           5
+//      11       3
+//    4    2       1
 
 fn make_tree() -> Node<i32> {
     let node_4 = Node {
