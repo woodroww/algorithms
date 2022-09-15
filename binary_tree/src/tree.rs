@@ -1,7 +1,6 @@
 use std::fmt::Display;
 use std::collections::VecDeque;
 
-type OptionNodeRef<T> = Option<Box<Node<T>>>;
 type NodeRef<T> = Box<Node<T>>;
 
 /// A tree implementation
@@ -9,8 +8,8 @@ type NodeRef<T> = Box<Node<T>>;
 #[derive(Default)]
 pub struct Node<T> {
     pub value: T,
-    pub left: OptionNodeRef<T>,
-    pub right: OptionNodeRef<T>,
+    pub left: Option<NodeRef<T>>,
+    pub right: Option<NodeRef<T>>,
 }
 
 impl<T> std::fmt::Debug for Node<T>
@@ -145,7 +144,7 @@ pub fn inorder_recursive<T: Display>(node: &Box<Node<T>>) {
 }
 
 /// iterate in order with function
-pub fn inorder_iterative<T, F>(root: &OptionNodeRef<T>, mut call_me: F)
+pub fn inorder_iterative<T, F>(root: &Option<NodeRef<T>>, mut call_me: F)
 where T: Display, F: FnMut(&T, usize)
 {
     if root.is_none() {
@@ -249,7 +248,7 @@ pub fn preorder_recursive<T: Display>(node: &Box<Node<T>>) {
     }
 }
 
-pub fn preorder_iterative<T, F>(root: &OptionNodeRef<T>, mut call_me: F)
+pub fn preorder_iterative<T, F>(root: &Option<NodeRef<T>>, mut call_me: F)
 where T: Display, F: FnMut(&T, usize)
 {
     if root.is_none() {
@@ -335,7 +334,7 @@ where T: Display
 3. Print contents of second stack
 */
 
-pub fn postorder_iterative<T, F>(root: &OptionNodeRef<T>, mut call_me: F)
+pub fn postorder_iterative<T, F>(root: &Option<NodeRef<T>>, mut call_me: F)
 where T: Display, F: FnMut(&T, usize)
 {
     if root.is_none() {
@@ -405,7 +404,7 @@ impl<'a, T> Iterator for PostOrderIterator<'a, T> {
 Commentary
 */
 
-pub fn levelorder_recursive<T: Display>(node: &OptionNodeRef<T>) {
+pub fn levelorder_recursive<T: Display>(node: &Option<NodeRef<T>>) {
     if node.is_none() {
         return;
     }
@@ -416,7 +415,7 @@ pub fn levelorder_recursive<T: Display>(node: &OptionNodeRef<T>) {
     }
 }
 
-pub fn levelorder_iterative<T, F>(root: &OptionNodeRef<T>, mut call_me: F)
+pub fn levelorder_iterative<T, F>(root: &Option<NodeRef<T>>, mut call_me: F)
 where F: FnMut(&T)
 {
     let mut queue: VecDeque<&Node<T>> = VecDeque::new();
@@ -473,7 +472,7 @@ impl<'a, T> Iterator for LevelOrderIterator<'a, T> {
 //  2     5
 // 3 4   6 7
 
-pub fn generate_tree<T>(level: usize, counter: &mut T) -> OptionNodeRef<T>
+pub fn generate_tree<T>(level: usize, counter: &mut T) -> Option<NodeRef<T>>
 where
     T: std::ops::AddAssign<i32> + Copy,
 {
@@ -497,7 +496,7 @@ where
 // invert_tree 
 // ---------------------------------------------------------------------------------------
 
-pub fn invert_tree<T: Clone>(root: &OptionNodeRef<T>) -> OptionNodeRef<T> {
+pub fn invert_tree<T: Clone>(root: &Option<NodeRef<T>>) -> Option<NodeRef<T>> {
     match root {
         Some(node) => Some(Box::new(Node {
             value: node.value.clone(),
@@ -511,7 +510,7 @@ pub fn invert_tree<T: Clone>(root: &OptionNodeRef<T>) -> OptionNodeRef<T> {
 
 
 // type NodeRef<T> = Option<Box<Node<T>>>;
-pub fn max_path_sum<T>(root: &OptionNodeRef<T>) -> Option<T>
+pub fn max_path_sum<T>(root: &Option<NodeRef<T>>) -> Option<T>
 where T: Ord + std::ops::Add<Output = T> + Clone
 {
     if root.is_none() {
