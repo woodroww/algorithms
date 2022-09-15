@@ -16,7 +16,7 @@ import pandas as pd
 import numpy as np
 
 chrome_path = 'open -a /Applications/Google\ Chrome.app %s'
-base_url = "/Users/matt/Documents/Programming/graphs/html"
+base_url = "/html"
 
 def saveShow(net, file_name):
     net.show(os.path.join(base_url, file_name))
@@ -76,28 +76,21 @@ my_friends = [
 ]
 
 friends = pd.DataFrame(my_friends, columns=["friend1", "friend2"])
-friends
+print(friends)
 
-# the easiest way to get the unique friends from each column
-# then find the union of both
-a = set([1, 1, 1, 2, 3, 4, 4, 5, 5, 5])
-b = set([4, 4, 5, 6, 7, 7, 8])
-print(a)
-print(b)
-print("Union a.union(b)")
-print(a.union(b))
-
-# unique people
+# the easiest way to get the unique friends from each column then find the union of both
 people = list(set(friends.friend1).union(set(friends.friend2)))
-print(people)
+print(f"unique people:\n{people}")
 
 friends_net = Network()
 friends_net.add_nodes(people)
 
 my_friends_list = friends.values.tolist()
-my_friends_list
+print(f"my_friends_list:\n{my_friends_list}")
 
 friends_net.add_edges(my_friends_list)
+friends_net.get_adj_list()
+
 saveShow(friends_net, "my_friends_map.html")
 
 

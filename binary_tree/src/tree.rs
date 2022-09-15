@@ -114,11 +114,12 @@ impl<T: Display> Node<T> {
     }
 }
 
-/*
-pub fn tree_contains<T>(root: &OptionNodeRef<T>, item: T) -> bool {
-    let i = LevelOrderIterator::new(root);
-    false
-}*/
+pub fn tree_contains<T>(root: &NodeRef<T>, item: T) -> bool
+where T: std::cmp::PartialEq
+{
+    let mut i = LevelOrderIterator::new(root);
+    i.find(|&x| x == &item).is_some()
+}
 
 
 
@@ -672,6 +673,22 @@ pub fn make_char_tree_1() -> Node<char> {
     };
     a
 }
+
+#[test]
+fn contains_a() {
+    let root = Box::new(make_char_tree_1());
+    let result = tree_contains(&root, 'a');
+    assert!(result == true);
+}
+
+#[test]
+fn contains_e() {
+    let root = Box::new(make_char_tree_1());
+    let result = tree_contains(&root, 'g');
+    assert!(result == false);
+}
+
+
 
 #[test]
 fn level_order_char_tree_1() {
