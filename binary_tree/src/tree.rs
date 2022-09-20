@@ -578,6 +578,64 @@ fn tree_sum_2() {
     assert_eq!(sum.unwrap(), 120);
 }
 
+fn min2<T>(x: T, y: T) -> T
+where T: std::cmp::PartialOrd
+{
+    if x < y { x } else { y }
+}
+
+// n = number of nodes
+// time O(n)
+// space O(n)
+pub fn minimum<T>(root: &Option<NodeRef<T>>) -> Option<T>
+where T: Default + Clone + std::cmp::Ord 
+{
+    if root.is_none() {
+        return None;
+    }
+    let root = root.as_ref().unwrap();
+    if root.left().is_none() && root.right.is_none() {
+        return Some(root.value().clone());
+    }
+    if root.left().is_some() && root.right.is_some() {
+        //let left = root.left.as_ref().unwrap().value.clone();
+        let left = minimum(&root.left).unwrap();
+        //let right = root.right.as_ref().unwrap().value.clone();
+        let right = minimum(&root.right).unwrap();
+        let value = root.value.clone(); 
+        return Some(min2(min2(left, right), value));
+    }
+    if root.left().is_some() {
+        //let left = root.left.as_ref().unwrap().value.clone();
+        let left = minimum(&root.left).unwrap();
+        return Some(min2(root.value.clone(), left));
+    } else {
+        //let right = root.right.as_ref().unwrap().value.clone();
+        let right = minimum(&root.right).unwrap();
+        return Some(min2(root.value.clone(), right));
+    }
+}
+
+#[test]
+fn minimum_1() {
+    let root = Box::new(make_num_tree_1());
+    let result = minimum(&Some(root));
+    assert_eq!(result.unwrap(), -2);
+}
+
+#[test]
+fn minimum_2() {
+    let root = Box::new(make_num_tree_2());
+    let result = minimum(&Some(root));
+    assert_eq!(result.unwrap(), 3);
+}
+
+#[test]
+fn minimum_3() {
+    let root = Box::new(make_num_tree_3());
+    let result = minimum(&Some(root));
+    assert_eq!(result.unwrap(), -13);
+}
 
 
 // type NodeRef<T> = Option<Box<Node<T>>>;
@@ -602,6 +660,140 @@ where T: Ord + std::ops::Add<Output = T> + Clone
         return Some(root.value().clone() + root.left().unwrap().value().clone());
     } else {
         return Some(root.value().clone() + root.right().unwrap().value().clone());
+    }
+}
+
+//       3
+//    /    \
+//   11     4
+//  / \      \
+// 4   -2     1
+
+pub fn make_num_tree_1() -> Node<i32> {
+
+    let n_4 = Node {
+        value: 4,
+        left: None,
+        right: None,
+    };
+    let n_neg2 = Node {
+        value: -2,
+        left: None,
+        right: None,
+    };
+    let n_1 = Node {
+        value: 1,
+        left: None,
+        right: None,
+    };
+    let n_4_2 = Node {
+        value: 4,
+        left: None,
+        right: Some(Box::new(n_1)),
+    };
+    let n_11 = Node {
+        value: 11,
+        left: Some(Box::new(n_4)),
+        right: Some(Box::new(n_neg2)),
+    };
+    Node {
+        value: 3,
+        left: Some(Box::new(n_11)),
+        right: Some(Box::new(n_4_2)),
+    }
+}
+
+//       5
+//    /    \
+//   11     3
+//  / \      \
+// 4   14     12
+
+pub fn make_num_tree_2() -> Node<i32> {
+
+    let n_4 = Node {
+        value: 4,
+        left: None,
+        right: None,
+    };
+    let n_14 = Node {
+        value: 14,
+        left: None,
+        right: None,
+    };
+    let n_12 = Node {
+        value: 12,
+        left: None,
+        right: None,
+    };
+    let n_11 = Node {
+        value: 11,
+        left: Some(Box::new(n_4)),
+        right: Some(Box::new(n_14)),
+    };
+    let n_3 = Node {
+        value: 3,
+        left: None,
+        right: Some(Box::new(n_12)),
+    };
+    Node {
+        value: 5,
+        left: Some(Box::new(n_11)),
+        right: Some(Box::new(n_3)),
+    }
+}
+
+//        -1
+//      /   \
+//    -6    -5
+//   /  \     \
+// -3   -4   -13
+//     /       \
+//    -2       -2
+
+pub fn make_num_tree_3() -> Node<i32> {
+
+    let n_neg2_l = Node {
+        value: -2,
+        left: None,
+        right: None,
+    };
+    let n_neg2_r = Node {
+        value: -2,
+        left: None,
+        right: None,
+    };
+
+    let n_neg3 = Node {
+        value: -3,
+        left: None,
+        right: None,
+    };
+    let n_neg4 = Node {
+        value: -4,
+        left: Some(Box::new(n_neg2_l)),
+        right: None,
+    };
+    let n_neg13 = Node {
+        value: -13,
+        left: None,
+        right: Some(Box::new(n_neg2_r)),
+    };
+
+    let n_neg6 = Node {
+        value: -6,
+        left: Some(Box::new(n_neg3)),
+        right: Some(Box::new(n_neg4)),
+    };
+    let n_neg5 = Node {
+        value: -6,
+        left: None,
+        right: Some(Box::new(n_neg13)),
+    };
+    Node {
+        value: -1,
+        left: Some(Box::new(n_neg6)),
+        right: Some(Box::new(n_neg5)),
     }
 }
 
