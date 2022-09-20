@@ -433,6 +433,7 @@ where F: FnMut(&T)
     }
 }
 
+// breadth first
 pub struct LevelOrderIterator<'a, T> {
     queue: VecDeque<&'a Node<T>>,
 }
@@ -468,7 +469,7 @@ impl<'a, T> Iterator for LevelOrderIterator<'a, T> {
 // ---------------------------------------------------------------------------------------
 // generate_tree
 // ---------------------------------------------------------------------------------------
-// generate_tree with 3 will generate this:
+// generate_tree with (3, 1) will generate this:
 //     1
 //  2     5
 // 3 4   6 7
@@ -506,6 +507,75 @@ pub fn invert_tree<T: Clone>(root: &Option<NodeRef<T>>) -> Option<NodeRef<T>> {
         })),
         None => None,
     }
+}
+
+// sum the tree
+pub fn tree_sum<T>(root: &Option<NodeRef<T>>) -> Option<T>
+where T: std::ops::Add<Output = T> + Clone
+{
+    if root.is_none() {
+        return None;
+    }
+    let root = root.as_ref().unwrap();
+    if root.left().is_none() && root.right.is_none() {
+        return Some(root.value().clone());
+    }
+    if root.left().is_some() && root.right.is_some() {
+        let left = tree_sum(&root.left).unwrap();
+        let right = tree_sum(&root.right).unwrap();
+        return Some(root.value().clone() + left + right);
+    }
+    if root.left().is_some() {
+        let left = tree_sum(&root.left).unwrap();
+        return Some(root.value().clone() + left);
+    } else {
+        let right = tree_sum(&root.right).unwrap();
+        return Some(root.value().clone() + right);
+    }
+}
+
+pub fn tree_sum_iterative<T>(root: &Option<NodeRef<T>>) -> Option<T>
+where T: std::ops::AddAssign + Default + Copy
+{
+    if root.is_none() {
+        return None;
+    }
+    let iter = LevelOrderIterator::new(&root.as_ref().unwrap());
+
+    let mut result: T = T::default();
+    for i in iter.into_iter() {
+        result += *i;
+    }
+    Some(result)
+}
+
+// generate_tree with (3, 1) will generate this:
+//     1
+//  2     5
+// 3 4   6 7
+
+#[test]
+fn tree_sum_1() {
+    let root = generate_tree(3, &mut 1);
+    let sum = tree_sum(&root);
+    assert_eq!(sum.unwrap(), 28);
+    let sum = tree_sum_iterative(&root);
+    assert_eq!(sum.unwrap(), 28);
+}
+
+// generate_tree with (4, 1) will generate this:
+//               1
+//         2           9
+//      3     6    10     13
+//     4 5   7 8  11 12  14 15 
+
+#[test]
+fn tree_sum_2() {
+    let root = generate_tree(4, &mut 1);
+    let sum = tree_sum(&root);
+    assert_eq!(sum.unwrap(), 120);
+    let sum = tree_sum_iterative(&root);
+    assert_eq!(sum.unwrap(), 120);
 }
 
 

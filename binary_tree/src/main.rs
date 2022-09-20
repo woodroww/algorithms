@@ -9,6 +9,11 @@ use binary_tree::tree::*;
 
 fn main() {
     println!("Hello Trees");
+
+    let mut counter = 1;
+    let tree = generate_tree(4, &mut counter).unwrap();
+    tree.print_recursive(0);
+
     print_everything();
     let max = max_path_sum(&Some(Box::new(make_tree())));
     println!("max path sum {}", max.unwrap());
