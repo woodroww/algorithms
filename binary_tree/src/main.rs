@@ -9,7 +9,10 @@ use binary_tree::tree::*;
 
 fn main() {
     println!("Hello Trees");
+    let tree = make_num_tree_4();
+    tree.print_recursive(0);
 
+    /*
     let mut counter = 1;
     let tree = generate_tree(4, &mut counter).unwrap();
     tree.print_recursive(0);
@@ -19,6 +22,7 @@ fn main() {
     println!("max path sum {}", max.unwrap());
     let letters = make_char_tree_2();
     letters.print_recursive(0);
+    */
 }
 
 

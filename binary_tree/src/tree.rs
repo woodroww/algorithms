@@ -578,6 +578,24 @@ fn tree_sum_2() {
     assert_eq!(sum.unwrap(), 120);
 }
 
+#[test]
+fn tree_sum_3() {
+    let root = Box::new(make_num_tree_1());
+    let sum = tree_sum(&Some(root));
+    assert_eq!(sum.unwrap(), 21);
+    let sum = tree_sum_iterative(&Some(Box::new(make_num_tree_1())));
+    assert_eq!(sum.unwrap(), 21);
+}
+
+#[test]
+fn tree_sum_4() {
+    let root = Box::new(make_num_tree_4());
+    let sum = tree_sum(&Some(root));
+    assert_eq!(sum.unwrap(), 10);
+    let sum = tree_sum_iterative(&Some(Box::new(make_num_tree_4())));
+    assert_eq!(sum.unwrap(), 10);
+}
+
 fn min2<T>(x: T, y: T) -> T
 where T: std::cmp::PartialOrd
 {
@@ -635,6 +653,13 @@ fn minimum_3() {
     let root = Box::new(make_num_tree_3());
     let result = minimum(&Some(root));
     assert_eq!(result.unwrap(), -13);
+}
+
+#[test]
+fn minimum_4() {
+    let root = Box::new(Node { value: 42, left: None, right: None });
+    let result = minimum(&Some(root));
+    assert_eq!(result.unwrap(), 42);
 }
 
 
@@ -795,6 +820,96 @@ pub fn make_num_tree_3() -> Node<i32> {
         left: Some(Box::new(n_neg6)),
         right: Some(Box::new(n_neg5)),
     }
+}
+
+pub fn make_num_tree_4() -> Node<i32> {
+//      1
+//    /   \
+//   6     0
+//  / \     \
+// 3   -6    2
+//    /       \
+//   2         2
+
+    let n_2_r_2 = Node {
+        value: 2,
+        left: None,
+        right: None,
+    };
+    let n_2_r_1 = Node {
+        value: 2,
+        left: None,
+        right: Some(Box::new(n_2_r_2)),
+    };
+    let n_0 = Node {
+        value: 0,
+        left: None,
+        right: Some(Box::new(n_2_r_1)),
+    };
+    let n_3 = Node {
+        value: 3,
+        left: None,
+        right: None,
+    };
+    let n_2_l = Node {
+        value: 2,
+        left: None,
+        right: None,
+    };
+    let n_neg6 = Node {
+        value: -6,
+        left: Some(Box::new(n_2_l)),
+        right: None,
+    };
+    let n_6 = Node {
+        value: 6,
+        left: Some(Box::new(n_3)),
+        right: Some(Box::new(n_neg6)),
+    };
+    Node {
+        value: 1,
+        left: Some(Box::new(n_6)),
+        right: Some(Box::new(n_0)),
+    }
+}
+
+fn make_num_tree_5() -> Node<i32> {
+//           5
+//      11       3
+//    4    2       1
+    let node_4 = Node {
+        value: 4,
+        left: None,
+        right: None,
+    };
+    let node_2 = Node {
+        value: 2,
+        left: None,
+        right: None,
+    };
+    let node_1 = Node {
+        value: 1,
+        left: None,
+        right: None,
+    };
+
+    let node_11 = Node {
+        value: 11,
+        left: Some(Box::new(node_4)),
+        right: Some(Box::new(node_2)), 
+    };
+    let node_3 = Node {
+        value: 3,
+        left: None,
+        right: Some(Box::new(node_1)), 
+    };
+
+    let root = Node {
+        value: 5,
+        left: Some(Box::new(node_11)),
+        right: Some(Box::new(node_3)),
+    };
+    root
 }
 
 pub fn make_char_tree_3() -> Node<char> {
