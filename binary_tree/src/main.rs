@@ -28,45 +28,8 @@ fn main() {
 
 
 
-//           5
-//      11       3
-//    4    2       1
 
-fn make_tree() -> Node<i32> {
-    let node_4 = Node {
-        value: 4,
-        left: None,
-        right: None,
-    };
-    let node_2 = Node {
-        value: 2,
-        left: None,
-        right: None,
-    };
-    let node_1 = Node {
-        value: 1,
-        left: None,
-        right: None,
-    };
 
-    let node_11 = Node {
-        value: 11,
-        left: Some(Box::new(node_4)),
-        right: Some(Box::new(node_2)), 
-    };
-    let node_3 = Node {
-        value: 3,
-        left: None,
-        right: Some(Box::new(node_1)), 
-    };
-
-    let root = Node {
-        value: 5,
-        left: Some(Box::new(node_11)),
-        right: Some(Box::new(node_3)),
-    };
-    root
-}
 
 fn print_everything() {
     let mut counter = 1;
@@ -79,7 +42,7 @@ fn print_everything() {
     root.print_recursive(0);
 
     println!("----print-iterative------------");
-    inorder_iterative(&tree, |node, level| {
+    inorder_iterative(tree.as_ref(), |node, level| {
         for _ in 0..level {
             print!("  ");
         }
@@ -90,7 +53,7 @@ fn print_everything() {
     inorder_recursive(tree.as_ref().unwrap());
     println!();
     println!("----inorder-iterative----------");
-    inorder_iterative(&tree, |node, _level| {
+    inorder_iterative(tree.as_ref(), |node, _level| {
         print!("{} ", node);
     });
     println!();
@@ -106,7 +69,7 @@ fn print_everything() {
     preorder_recursive(tree.as_ref().unwrap());
     println!();
     println!("----preorder-iterative---------");
-    preorder_iterative(&tree, |node, _level| {
+    preorder_iterative(tree.as_ref(), |node, _level| {
         print!("{} ", node);
     });
     println!();
@@ -122,7 +85,7 @@ fn print_everything() {
     postorder_recursive(tree.as_ref().unwrap());
     println!();
     println!("----postorder-iterative--------");
-    postorder_iterative(&tree, |node, _level| {
+    postorder_iterative(tree.as_ref(), |node, _level| {
         print!("{} ", node);
     });
     println!();
@@ -135,10 +98,10 @@ fn print_everything() {
     println!();
 
     println!("----levelorder-recursive-------");
-    levelorder_recursive(&tree);
+    levelorder_recursive(tree.as_ref());
     println!();
     println!("----levelorder-iterative-------");
-    levelorder_iterative(&tree, |node| {
+    levelorder_iterative(tree.as_ref(), |node| {
         print!("{} ", node);
     });
     println!();

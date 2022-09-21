@@ -145,14 +145,14 @@ pub fn inorder_recursive<T: Display>(node: &Box<Node<T>>) {
 }
 
 /// iterate in order with function
-pub fn inorder_iterative<T, F>(root: &Option<NodeRef<T>>, mut call_me: F)
+pub fn inorder_iterative<T, F>(root: Option<&NodeRef<T>>, mut call_me: F)
 where T: Display, F: FnMut(&T, usize)
 {
     if root.is_none() {
         return;
     }
     let mut stack: Vec<&Box<Node<T>>> = Vec::new();
-    let mut current: Option<&Box<Node<T>>> = root.as_ref();
+    let mut current: Option<&Box<Node<T>>> = root;
     let root_height = root.as_ref().unwrap().height().unwrap_or(0);
     loop {
         if current.is_some() {
@@ -249,7 +249,7 @@ pub fn preorder_recursive<T: Display>(node: &Box<Node<T>>) {
     }
 }
 
-pub fn preorder_iterative<T, F>(root: &Option<NodeRef<T>>, mut call_me: F)
+pub fn preorder_iterative<T, F>(root: Option<&NodeRef<T>>, mut call_me: F)
 where T: Display, F: FnMut(&T, usize)
 {
     if root.is_none() {
@@ -335,7 +335,7 @@ where T: Display
 3. Print contents of second stack
 */
 
-pub fn postorder_iterative<T, F>(root: &Option<NodeRef<T>>, mut call_me: F)
+pub fn postorder_iterative<T, F>(root: Option<&NodeRef<T>>, mut call_me: F)
 where T: Display, F: FnMut(&T, usize)
 {
     if root.is_none() {
@@ -405,7 +405,7 @@ impl<'a, T> Iterator for PostOrderIterator<'a, T> {
 Commentary
 */
 
-pub fn levelorder_recursive<T: Display>(node: &Option<NodeRef<T>>) {
+pub fn levelorder_recursive<T: Display>(node: Option<&NodeRef<T>>) {
     if node.is_none() {
         return;
     }
@@ -416,7 +416,7 @@ pub fn levelorder_recursive<T: Display>(node: &Option<NodeRef<T>>) {
     }
 }
 
-pub fn levelorder_iterative<T, F>(root: &Option<NodeRef<T>>, mut call_me: F)
+pub fn levelorder_iterative<T, F>(root: Option<&NodeRef<T>>, mut call_me: F)
 where F: FnMut(&T)
 {
     let mut queue: VecDeque<&Node<T>> = VecDeque::new();
@@ -498,19 +498,19 @@ where
 // invert_tree 
 // ---------------------------------------------------------------------------------------
 
-pub fn invert_tree<T: Clone>(root: &Option<NodeRef<T>>) -> Option<NodeRef<T>> {
+pub fn invert_tree<T: Clone>(root: Option<&NodeRef<T>>) -> Option<NodeRef<T>> {
     match root {
         Some(node) => Some(Box::new(Node {
             value: node.value.clone(),
-            left: invert_tree(&node.right),
-            right: invert_tree(&node.left),
+            left: invert_tree(node.right.as_ref()),
+            right: invert_tree(node.left.as_ref()),
         })),
         None => None,
     }
 }
 
 // sum the tree
-pub fn tree_sum<T>(root: &Option<NodeRef<T>>) -> Option<T>
+pub fn tree_sum<T>(root: Option<&NodeRef<T>>) -> Option<T>
 where T: std::ops::Add<Output = T> + Clone
 {
     if root.is_none() {
@@ -521,20 +521,20 @@ where T: std::ops::Add<Output = T> + Clone
         return Some(root.value().clone());
     }
     if root.left().is_some() && root.right.is_some() {
-        let left = tree_sum(&root.left).unwrap();
-        let right = tree_sum(&root.right).unwrap();
+        let left = tree_sum(root.left.as_ref()).unwrap();
+        let right = tree_sum(root.right.as_ref()).unwrap();
         return Some(root.value().clone() + left + right);
     }
     if root.left().is_some() {
-        let left = tree_sum(&root.left).unwrap();
+        let left = tree_sum(root.left.as_ref()).unwrap();
         return Some(root.value().clone() + left);
     } else {
-        let right = tree_sum(&root.right).unwrap();
+        let right = tree_sum(root.right.as_ref()).unwrap();
         return Some(root.value().clone() + right);
     }
 }
 
-pub fn tree_sum_iterative<T>(root: &Option<NodeRef<T>>) -> Option<T>
+pub fn tree_sum_iterative<T>(root: Option<&NodeRef<T>>) -> Option<T>
 where T: std::ops::AddAssign + Default + Copy
 {
     if root.is_none() {
@@ -557,9 +557,9 @@ where T: std::ops::AddAssign + Default + Copy
 #[test]
 fn tree_sum_1() {
     let root = generate_tree(3, &mut 1);
-    let sum = tree_sum(&root);
+    let sum = tree_sum(root.as_ref());
     assert_eq!(sum.unwrap(), 28);
-    let sum = tree_sum_iterative(&root);
+    let sum = tree_sum_iterative(root.as_ref());
     assert_eq!(sum.unwrap(), 28);
 }
 
@@ -572,27 +572,27 @@ fn tree_sum_1() {
 #[test]
 fn tree_sum_2() {
     let root = generate_tree(4, &mut 1);
-    let sum = tree_sum(&root);
+    let sum = tree_sum(root.as_ref());
     assert_eq!(sum.unwrap(), 120);
-    let sum = tree_sum_iterative(&root);
+    let sum = tree_sum_iterative(root.as_ref());
     assert_eq!(sum.unwrap(), 120);
 }
 
 #[test]
 fn tree_sum_3() {
     let root = Box::new(make_num_tree_1());
-    let sum = tree_sum(&Some(root));
+    let sum = tree_sum(Some(&root));
     assert_eq!(sum.unwrap(), 21);
-    let sum = tree_sum_iterative(&Some(Box::new(make_num_tree_1())));
+    let sum = tree_sum_iterative(Some(&Box::new(make_num_tree_1())));
     assert_eq!(sum.unwrap(), 21);
 }
 
 #[test]
 fn tree_sum_4() {
     let root = Box::new(make_num_tree_4());
-    let sum = tree_sum(&Some(root));
+    let sum = tree_sum(Some(&root));
     assert_eq!(sum.unwrap(), 10);
-    let sum = tree_sum_iterative(&Some(Box::new(make_num_tree_4())));
+    let sum = tree_sum_iterative(Some(&Box::new(make_num_tree_4())));
     assert_eq!(sum.unwrap(), 10);
 }
 
@@ -605,7 +605,7 @@ where T: std::cmp::PartialOrd
 // n = number of nodes
 // time O(n)
 // space O(n)
-pub fn minimum<T>(root: &Option<NodeRef<T>>) -> Option<T>
+pub fn minimum<T>(root: Option<&NodeRef<T>>) -> Option<T>
 where T: Default + Clone + std::cmp::Ord 
 {
     if root.is_none() {
@@ -617,19 +617,19 @@ where T: Default + Clone + std::cmp::Ord
     }
     if root.left().is_some() && root.right.is_some() {
         //let left = root.left.as_ref().unwrap().value.clone();
-        let left = minimum(&root.left).unwrap();
+        let left = minimum(root.left.as_ref()).unwrap();
         //let right = root.right.as_ref().unwrap().value.clone();
-        let right = minimum(&root.right).unwrap();
+        let right = minimum(root.right.as_ref()).unwrap();
         let value = root.value.clone(); 
         return Some(min2(min2(left, right), value));
     }
     if root.left().is_some() {
         //let left = root.left.as_ref().unwrap().value.clone();
-        let left = minimum(&root.left).unwrap();
+        let left = minimum(root.left.as_ref()).unwrap();
         return Some(min2(root.value.clone(), left));
     } else {
         //let right = root.right.as_ref().unwrap().value.clone();
-        let right = minimum(&root.right).unwrap();
+        let right = minimum(root.right.as_ref()).unwrap();
         return Some(min2(root.value.clone(), right));
     }
 }
@@ -637,34 +637,34 @@ where T: Default + Clone + std::cmp::Ord
 #[test]
 fn minimum_1() {
     let root = Box::new(make_num_tree_1());
-    let result = minimum(&Some(root));
+    let result = minimum(Some(&root));
     assert_eq!(result.unwrap(), -2);
 }
 
 #[test]
 fn minimum_2() {
     let root = Box::new(make_num_tree_2());
-    let result = minimum(&Some(root));
+    let result = minimum(Some(&root));
     assert_eq!(result.unwrap(), 3);
 }
 
 #[test]
 fn minimum_3() {
     let root = Box::new(make_num_tree_3());
-    let result = minimum(&Some(root));
+    let result = minimum(Some(&root));
     assert_eq!(result.unwrap(), -13);
 }
 
 #[test]
 fn minimum_4() {
     let root = Box::new(Node { value: 42, left: None, right: None });
-    let result = minimum(&Some(root));
+    let result = minimum(Some(&root));
     assert_eq!(result.unwrap(), 42);
 }
 
 
 // type NodeRef<T> = Option<Box<Node<T>>>;
-pub fn max_path_sum<T>(root: &Option<NodeRef<T>>) -> Option<T>
+pub fn max_path_sum<T>(root: Option<&NodeRef<T>>) -> Option<T>
 where T: Ord + std::ops::Add<Output = T> + Clone
 {
     if root.is_none() {
@@ -675,8 +675,8 @@ where T: Ord + std::ops::Add<Output = T> + Clone
         return Some(root.value().clone());
     }
     if root.left().is_some() && root.right.is_some() {
-        let left = max_path_sum(&root.left);
-        let right = max_path_sum(&root.right);
+        let left = max_path_sum(root.left.as_ref());
+        let right = max_path_sum(root.right.as_ref());
         let max_child: T = std::cmp::max(left.unwrap(), right.unwrap());
         let max_child_path_sum = root.value().clone();
         return Some(max_child + max_child_path_sum);
@@ -1184,7 +1184,7 @@ fn test_in_order_iterative() {
     let mut counter: i32 = 1;
     let tree = generate_tree(3, &mut counter);
     let mut output: Vec<i32> = Vec::new();
-    inorder_iterative(&tree, |node_value, _level| {
+    inorder_iterative(tree.as_ref(), |node_value, _level| {
         output.push(*node_value);
     });
     assert_eq!(output, vec![3, 2, 4, 1, 6, 5, 7]);
@@ -1195,7 +1195,7 @@ fn test_pre_order_iterative() {
     let mut counter: i32 = 1;
     let tree = generate_tree(3, &mut counter);
     let mut output: Vec<i32> = Vec::new();
-    preorder_iterative(&tree, |node_value, _level| {
+    preorder_iterative(tree.as_ref(), |node_value, _level| {
         output.push(*node_value);
     });
     assert_eq!(output, vec![1, 2, 3, 4, 5, 6, 7]);
@@ -1206,7 +1206,7 @@ fn test_post_order_iterative() {
     let mut counter: i32 = 1;
     let tree = generate_tree(3, &mut counter);
     let mut output: Vec<i32> = Vec::new();
-    postorder_iterative(&tree, |node_value, _level| {
+    postorder_iterative(tree.as_ref(), |node_value, _level| {
         output.push(*node_value);
     });
     assert_eq!(output, vec![3, 4, 2, 6, 7, 5, 1]);
@@ -1217,7 +1217,7 @@ fn test_level_order_iterative() {
     let mut counter: i32 = 1;
     let tree = generate_tree(3, &mut counter);
     let mut output: Vec<i32> = Vec::new();
-    levelorder_iterative(&tree, |node_value| {
+    levelorder_iterative(tree.as_ref(), |node_value| {
         output.push(*node_value);
     });
     assert_eq!(output, vec![1, 2, 5, 3, 4, 6, 7]);
