@@ -9,9 +9,8 @@ use binary_tree::tree::*;
 
 fn main() {
     println!("Hello Trees");
-    let tree = make_num_tree_4();
+    let tree = make_num_tree_7();
     tree.print_recursive(0);
-
     /*
     let mut counter = 1;
     let tree = generate_tree(4, &mut counter).unwrap();
