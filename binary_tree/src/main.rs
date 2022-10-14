@@ -3,6 +3,7 @@
 // maybe a revalation https://youtu.be/QkuNmL7tz08?t=4308
 
 use binary_tree::tree::*;
+use binary_tree::tree::height;
 //{InOrderIterator, Node, PreOrderIterator, PostOrderIterator, LevelOrderIterator};
 
 
@@ -114,7 +115,7 @@ fn print_everything() {
     println!();
     println!(
         "{} - height",
-        tree.as_ref().unwrap().height_recursive()
+        height(Some(tree.as_ref().unwrap()))
     );
     println!(
         "{} - height iterative",
