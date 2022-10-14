@@ -32,33 +32,29 @@ impl<T> Node<T> {
         self.right.as_ref()
     }
 
-    pub fn height(&self) -> Option<usize> {
+    pub fn height(&self) -> usize {
         self.height_recursive()
     }
 
-    pub fn height_recursive(&self) -> Option<usize> {
-        let l_depth = match &self.left {
-            Some(left) => match left.height_recursive() {
-                Some(h) => h,
-                None => 0,
-            }
-            None => {
-                0
-            }
-        };
-        let r_depth = match &self.right {
-            Some(right) => match right.height_recursive() {
-                Some(h) => h,
-                None => 0,
-            }
-            None => {
-                0
-            }
-        };
-        if l_depth > r_depth {
-            Some(l_depth + 1)
+    // don't think there are any height tests
+    pub fn height_recursive(&self) -> usize {
+
+        let l_depth = if self.left.is_some() {
+            self.left.as_ref().unwrap().height_recursive()
         } else {
-            Some(r_depth + 1)
+            0
+        };
+
+        let r_depth = if self.right.is_some() {
+            self.right.as_ref().unwrap().height_recursive()
+        } else {
+            0
+        };
+
+        if l_depth > r_depth {
+            l_depth + 1
+        } else {
+            r_depth + 1
         }
     }
 
@@ -172,7 +168,7 @@ where T: Display, F: FnMut(&T, usize)
     }
     let mut stack: Vec<&Box<Node<T>>> = Vec::new();
     let mut current: Option<&Box<Node<T>>> = root;
-    let root_height = root.as_ref().unwrap().height().unwrap_or(0);
+    let root_height = root.as_ref().unwrap().height();
     loop {
         if current.is_some() {
             let node = current.unwrap();
@@ -181,7 +177,7 @@ where T: Display, F: FnMut(&T, usize)
         } else {
             match stack.pop() {
                 Some(node) => {
-                    let h = node.height().unwrap_or(0);
+                    let h = node.height();
                     call_me(&node.value, root_height - h);
                     current = node.right.as_ref();
                 }
@@ -276,10 +272,10 @@ where T: Display, F: FnMut(&T, usize)
     }
     let mut stack: Vec<&Box<Node<T>>> = Vec::new();
     stack.push(root.as_ref().unwrap());
-    let root_height = root.as_ref().unwrap().height().unwrap_or(0);
+    let root_height = root.as_ref().unwrap().height();
 
     while let Some(node) = stack.pop() {
-        let h = node.height().unwrap_or(0);
+        let h = node.height();
         call_me(&node.value, root_height - h);
         if let Some(right) = node.right.as_ref() {
             stack.push(right);
@@ -362,7 +358,7 @@ where T: Display, F: FnMut(&T, usize)
     }
     let mut stack: Vec<&Box<Node<T>>> = Vec::new();
     stack.push(root.as_ref().unwrap());
-    let root_height = root.as_ref().unwrap().height().unwrap_or(0);
+    let root_height = root.as_ref().unwrap().height();
     let mut stack_two: Vec<&Box<Node<T>>> = Vec::new();
 
     while let Some(node) = stack.pop() {
@@ -377,7 +373,7 @@ where T: Display, F: FnMut(&T, usize)
     }
 
     while let Some(node) = stack_two.pop() {
-        let h = node.height().unwrap_or(0);
+        let h = node.height();
         call_me(&node.value, root_height - h);
     }
 }
@@ -429,7 +425,7 @@ pub fn levelorder_recursive<T: Display>(node: Option<&NodeRef<T>>) {
         return;
     }
     let node = node.as_ref().unwrap();
-    let h = node.height().unwrap_or(0);
+    let h = node.height();
     for i in 1..=h {
         node.print_level(i);
     }
@@ -596,6 +592,48 @@ fn max_width_4() {
     let max = max_width(root.as_ref());
     assert_eq!(max, 8);
 }
+
+// ---------------------------------------------------------------------------------------
+// diameter 
+// ---------------------------------------------------------------------------------------
+// The diameter/width of a tree is defined as the number of nodes on the longest path between two
+// end nodes. 
+// the diameter of T’s left subtree.
+// the diameter of T’s right subtree.
+// the longest path between leaves that goes through the root of T (this can be computed from the
+// heights of the subtrees of T)
+
+pub fn diameter<T>(root: Option<&NodeRef<T>>) -> usize {
+
+    if root.is_none() {
+        return 0;
+    }
+    let root = root.unwrap();
+
+    let l_height = if root.left.is_some() {
+        root.left.as_ref().unwrap().height()
+    } else {
+        0
+    };
+    let r_height = if root.right.is_some() {
+        root.right.as_ref().unwrap().height()
+    } else {
+        0
+    };
+
+    let l_diameter = diameter(root.left.as_ref());
+    let r_diameter = diameter(root.right.as_ref());
+
+    std::cmp::max(l_height + r_height + 1, std::cmp::max(l_diameter, r_diameter))
+}
+
+#[test]
+fn test_diameter_1() {
+    let root = Box::new(make_num_tree_8());
+    let diameter = diameter(Some(&root));
+    assert_eq!(diameter, 4);
+}
+
 // ---------------------------------------------------------------------------------------
 // tree_sum 
 // ---------------------------------------------------------------------------------------
@@ -1052,6 +1090,42 @@ fn make_num_tree_5() -> Node<i32> {
     root
 }
 
+fn make_num_tree_8() -> Node<i32> {
+//          5
+//        /   \
+//      11     3
+//     /  \   
+//    4    2  
+
+    let node_4 = Node {
+        value: 4,
+        left: None,
+        right: None,
+    };
+    let node_2 = Node {
+        value: 2,
+        left: None,
+        right: None,
+    };
+
+    let node_11 = Node {
+        value: 11,
+        left: Some(Box::new(node_4)),
+        right: Some(Box::new(node_2)), 
+    };
+    let node_3 = Node {
+        value: 3,
+        left: None,
+        right: None,
+    };
+
+    let root = Node {
+        value: 5,
+        left: Some(Box::new(node_11)),
+        right: Some(Box::new(node_3)),
+    };
+    root
+}
 pub fn make_num_tree_6() -> Node<i32> {
 //        5
 //     /    \

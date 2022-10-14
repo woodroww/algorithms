@@ -114,7 +114,7 @@ fn print_everything() {
     println!();
     println!(
         "{} - height",
-        tree.as_ref().unwrap().height_recursive().unwrap()
+        tree.as_ref().unwrap().height_recursive()
     );
     println!(
         "{} - height iterative",
