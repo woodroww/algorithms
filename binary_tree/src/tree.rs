@@ -649,28 +649,26 @@ fn max_width_4() {
 // the longest path between leaves that goes through the root of T (this can be computed from the
 // heights of the subtrees of T)
 
-pub fn diameter<T>(root: Option<&NodeRef<T>>) -> isize {
-
+fn traverse<T>(root: Option<&NodeRef<T>>, max: &mut isize) -> isize {
     if root.is_none() {
         return 0;
     }
     let root = root.unwrap();
+    let left = traverse(root.left.as_ref(), max);
+    let right = traverse(root.right.as_ref(), max);
+    if left + right > *max {
+        *max = left + right;
+    }
+    std::cmp::max(left, right) + 1
+}
 
-    let l_height = if root.left.is_some() {
-        height(root.left.as_ref())
-    } else {
-        0
-    };
-    let r_height = if root.right.is_some() {
-        height(root.right.as_ref())
-    } else {
-        0
-    };
-
-    let l_diameter = diameter(root.left.as_ref());
-    let r_diameter = diameter(root.right.as_ref());
-
-    std::cmp::max(l_height + r_height + 1, std::cmp::max(l_diameter, r_diameter))
+pub fn diameter<T>(root: Option<&NodeRef<T>>) -> isize {
+    if root.is_none() {
+        return 0;
+    }
+    let mut max = 0;
+    traverse(root, &mut max);
+    max
 }
 
 fn make_num_tree_8() -> Node<i32> {
@@ -758,14 +756,12 @@ fn make_num_tree_9() -> Node<i32> {
     }
 }
 
-
 #[test]
 fn test_diameter_1() {
     let root = Box::new(make_num_tree_8());
     let diameter = diameter(Some(&root));
     assert_eq!(diameter, 3);
 }
-
 
 #[test]
 fn test_diameter_2() {
@@ -774,6 +770,9 @@ fn test_diameter_2() {
     assert_eq!(diameter, 6);
 }
 
+//     10
+//   11    12
+//  2  31
 // ---------------------------------------------------------------------------------------
 // tree_sum 
 // ---------------------------------------------------------------------------------------
