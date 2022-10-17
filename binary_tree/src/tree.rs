@@ -1,5 +1,5 @@
-use std::fmt::Display;
 use std::collections::VecDeque;
+use std::fmt::Display;
 
 pub type NodeRef<T> = Box<Node<T>>;
 
@@ -13,7 +13,9 @@ pub struct Node<T> {
 }
 
 impl<T> std::fmt::Debug for Node<T>
-where T: Display {
+where
+    T: Display,
+{
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.value)
     }
@@ -53,25 +55,37 @@ impl<T> Node<T> {
         }
         height
     }
+}
 
-/*
-
-	void insert(T inData) {
-		if (inData <= mData) {
-			if ((bool)mLeft == true) {
-				mLeft->insert(inData);
-			} else {
-				mLeft = std::unique_ptr<class binary_tree<T> >(new binary_tree<T>(inData));
-			}
-		} else {
-			if ((bool)mRight == true) {
-				mRight->insert(inData);
-			} else {
-				mRight = std::unique_ptr<class binary_tree<T> >(new binary_tree<T>(inData));
-			}
-		}
-	}
-    */
+impl<T> Node<T>
+where
+    T: std::cmp::PartialEq + std::cmp::PartialOrd,
+{
+    pub fn insert(&mut self, value: T) {
+        if value < self.value {
+            match &mut self.left {
+                Some(l) => l.insert(value),
+                None => {
+                    self.left = Some(Box::new(Node {
+                        value,
+                        left: None,
+                        right: None,
+                    }))
+                }
+            }
+        } else {
+            match &mut self.right {
+                Some(r) => r.insert(value),
+                None => {
+                    self.right = Some(Box::new(Node {
+                        value,
+                        left: None,
+                        right: None,
+                    }))
+                }
+            }
+        }
+    }
 }
 
 pub fn height<T>(root: Option<&NodeRef<T>>) -> isize {
@@ -83,44 +97,6 @@ pub fn height<T>(root: Option<&NodeRef<T>>) -> isize {
     let r_height = height(root.right.as_ref());
     std::cmp::max(l_height, r_height) + 1
 }
-
-#[test]
-fn height_1() {
-    let root = Box::new(make_num_tree_1());
-    let h = height(Some(&root));
-    assert_eq!(h, 2);
-}
-
-#[test]
-fn height_2() {
-    let root = Box::new(make_num_tree_3());
-    let h = height(Some(&root));
-    assert_eq!(h, 3);
-}
-
-#[test]
-fn height_3() {
-    let root = Box::new(make_char_tree_3());
-    let h = height(Some(&root));
-    assert_eq!(h, 4);
-}
-
-#[test]
-fn height_4() {
-    let level = 4;
-    let root = generate_tree(level, &mut 1).unwrap();
-    let h = height(Some(&root));
-    assert_eq!(h, level as isize - 1);
-}
-
-#[test]
-fn height_5() {
-    let level = 10;
-    let root = generate_tree(level, &mut 1).unwrap();
-    let h = height(Some(&root));
-    assert_eq!(h, level as isize - 1);
-}
-
 
 pub fn depth<T>(root: Option<&NodeRef<T>>, node: &NodeRef<T>) -> isize {
     if root.is_none() {
@@ -144,52 +120,7 @@ pub fn depth<T>(root: Option<&NodeRef<T>>, node: &NodeRef<T>) -> isize {
     dist
 }
 
-#[test]
-fn depth_1() {
-    let root = generate_tree(3, &mut 1).unwrap();
-
-    let d = depth(Some(&root), &root);
-    assert_eq!(d, 0);
-
-    let search = root.left.as_ref().unwrap();
-    let d = depth(Some(&root), search);
-    assert_eq!(d, 1);
-
-    let search = root.left.as_ref().unwrap().left.as_ref().unwrap();
-    let d = depth(Some(&root), search);
-    assert_eq!(d, 2);
-}
-
-#[test]
-fn depth_2() {
-//      a
-//       \
-//        b
-//       /
-//      c
-//    /  \
-//   x    d
-//         \
-//          e
-    let root = Box::new(make_char_tree_3());
-    let search = root.right.as_ref().unwrap();
-    let search = search.left.as_ref().unwrap();
-    let search = search.right.as_ref().unwrap();
-    let search = search.right.as_ref().unwrap();
-    let d = depth(Some(&root), search);
-    assert_eq!(d, 4);
-
-    let search = root.right.as_ref().unwrap();
-    let search = search.left.as_ref().unwrap();
-    let search = search.left.as_ref().unwrap();
-    let d = depth(Some(&root), search);
-    assert_eq!(d, 3);
-}
-
-
-
 impl<T: Display> Node<T> {
-
     pub fn print_level(&self, level: isize) {
         if level == 1 {
             print!("{} ", self.value);
@@ -219,13 +150,12 @@ impl<T: Display> Node<T> {
 
 // does tree contain value ?
 pub fn tree_contains<T>(root: &NodeRef<T>, item: T) -> bool
-where T: std::cmp::PartialEq
+where
+    T: std::cmp::PartialEq,
 {
     let mut i = LevelOrderIterator::new(root);
     i.find(|&x| x == &item).is_some()
 }
-
-
 
 // ---------------------------------------------------------------------------------------
 // In order
@@ -250,7 +180,9 @@ pub fn inorder_recursive<T: Display>(node: &Box<Node<T>>) {
 
 /// iterate in order with function
 pub fn inorder_iterative<T, F>(root: Option<&NodeRef<T>>, mut call_me: F)
-where T: Display, F: FnMut(&T, isize)
+where
+    T: Display,
+    F: FnMut(&T, isize),
 {
     if root.is_none() {
         return;
@@ -285,7 +217,7 @@ pub struct InOrderIterator<'a, T> {
 }
 
 impl<'a, T> InOrderIterator<'a, T> {
-    /// return a new iterator 
+    /// return a new iterator
     pub fn new(root: &'a Node<T>) -> Self {
         Self {
             stack: Vec::new(),
@@ -340,7 +272,7 @@ impl<'a, T> Iterator for InOrderIterator<'a, T> {
 Algorithm Preorder(tree)
    1. Visit the root.
    2. Traverse the left subtree, i.e., call Preorder(left-subtree)
-   3. Traverse the right subtree, i.e., call Preorder(right-subtree) 
+   3. Traverse the right subtree, i.e., call Preorder(right-subtree)
 */
 
 pub fn preorder_recursive<T: Display>(node: &Box<Node<T>>) {
@@ -354,7 +286,9 @@ pub fn preorder_recursive<T: Display>(node: &Box<Node<T>>) {
 }
 
 pub fn preorder_iterative<T, F>(root: Option<&NodeRef<T>>, mut call_me: F)
-where T: Display, F: FnMut(&T, isize)
+where
+    T: Display,
+    F: FnMut(&T, isize),
 {
     if root.is_none() {
         return;
@@ -383,9 +317,7 @@ pub struct PreOrderIterator<'a, T> {
 impl<'a, T> PreOrderIterator<'a, T> {
     /// return a new iterator starting at root
     pub fn new(root: &'a Node<T>) -> Self {
-        let mut i = Self {
-            stack: Vec::new(),
-        };
+        let mut i = Self { stack: Vec::new() };
         i.stack.push(root);
         i
     }
@@ -420,7 +352,8 @@ Algorithm Postorder(tree)
 */
 
 pub fn postorder_recursive<T>(node: &Box<Node<T>>)
-where T: Display
+where
+    T: Display,
 {
     if let Some(left) = &node.left {
         postorder_recursive(&left);
@@ -440,7 +373,9 @@ where T: Display
 */
 
 pub fn postorder_iterative<T, F>(root: Option<&NodeRef<T>>, mut call_me: F)
-where T: Display, F: FnMut(&T, isize)
+where
+    T: Display,
+    F: FnMut(&T, isize),
 {
     if root.is_none() {
         return;
@@ -523,7 +458,8 @@ pub fn levelorder_recursive<T: Display>(node: Option<&NodeRef<T>>) {
 }
 
 pub fn levelorder_iterative<T, F>(root: Option<&NodeRef<T>>, mut call_me: F)
-where F: FnMut(&T)
+where
+    F: FnMut(&T),
 {
     let mut queue: VecDeque<&Node<T>> = VecDeque::new();
     queue.push_back(root.as_ref().unwrap());
@@ -584,7 +520,7 @@ impl<'a, T> Iterator for LevelOrderIterator<'a, T> {
 //               1
 //         2           9
 //      3     6    10     13
-//     4 5   7 8  11 12  14 15 
+//     4 5   7 8  11 12  14 15
 
 pub fn generate_tree<T>(level: usize, counter: &mut T) -> Option<NodeRef<T>>
 where
@@ -607,7 +543,7 @@ where
 }
 
 // ---------------------------------------------------------------------------------------
-// invert_tree 
+// invert_tree
 // ---------------------------------------------------------------------------------------
 // basically mirror reverse
 
@@ -623,7 +559,7 @@ pub fn invert_tree<T: Clone>(root: Option<&NodeRef<T>>) -> Option<NodeRef<T>> {
 }
 
 // ---------------------------------------------------------------------------------------
-// max_width 
+// max_width
 // ---------------------------------------------------------------------------------------
 
 pub fn max_width<T>(root: Option<&NodeRef<T>>) -> usize {
@@ -638,7 +574,6 @@ pub fn max_width<T>(root: Option<&NodeRef<T>>) -> usize {
     queue.push_back(root);
 
     while !queue.is_empty() {
-
         let mut nodes_in_level = queue.len();
         max = std::cmp::max(max, nodes_in_level);
 
@@ -656,39 +591,11 @@ pub fn max_width<T>(root: Option<&NodeRef<T>>) -> usize {
     max
 }
 
-#[test]
-fn max_width_1() {
-    let root = Box::new(make_num_tree_1());
-    let max = max_width(Some(&root));
-    assert_eq!(max, 3);
-}
-
-#[test]
-fn max_width_2() {
-    let root = Box::new(make_num_tree_2());
-    let max = max_width(Some(&root));
-    assert_eq!(max, 3);
-}
-
-#[test]
-fn max_width_3() {
-    let root = generate_tree(3, &mut 1);
-    let max = max_width(root.as_ref());
-    assert_eq!(max, 4);
-}
-
-#[test]
-fn max_width_4() {
-    let root = generate_tree(4, &mut 1);
-    let max = max_width(root.as_ref());
-    assert_eq!(max, 8);
-}
-
 // ---------------------------------------------------------------------------------------
-// diameter 
+// diameter
 // ---------------------------------------------------------------------------------------
 // The diameter/width of a tree is defined as the number of nodes on the longest path between two
-// end nodes. 
+// end nodes.
 // the diameter of T’s left subtree.
 // the diameter of T’s right subtree.
 // the longest path between leaves that goes through the root of T (this can be computed from the
@@ -716,115 +623,18 @@ pub fn diameter<T>(root: Option<&NodeRef<T>>) -> isize {
     max
 }
 
-fn make_num_tree_8() -> Node<i32> {
-//          5
-//        /   \
-//      11     3
-//     /  \   
-//    4    2  
-
-    let node_4 = Node {
-        value: 4,
-        left: None,
-        right: None,
-    };
-    let node_2 = Node {
-        value: 2,
-        left: None,
-        right: None,
-    };
-
-    let node_11 = Node {
-        value: 11,
-        left: Some(Box::new(node_4)),
-        right: Some(Box::new(node_2)), 
-    };
-    let node_3 = Node {
-        value: 3,
-        left: None,
-        right: None,
-    };
-
-    let root = Node {
-        value: 5,
-        left: Some(Box::new(node_11)),
-        right: Some(Box::new(node_3)),
-    };
-    root
-}
-fn make_num_tree_9() -> Node<i32> {
-//          1
-//    2           3
-//  4   5       6
-//     7      8
-
-    let node_7 = Node {
-        value: 7,
-        left: None,
-        right: None,
-    };
-    let node_4 = Node {
-        value: 4,
-        left: None,
-        right: None,
-    };
-    let node_5 = Node {
-        value: 5,
-        left: Some(Box::new(node_7)),
-        right: None,
-    };
-    let node_2 = Node {
-        value: 2,
-        left: Some(Box::new(node_4)),
-        right: Some(Box::new(node_5)),
-    };
-
-    let node_8 = Node {
-        value: 8,
-        left: None,
-        right: None,
-    };
-    let node_6 = Node {
-        value: 6,
-        left: Some(Box::new(node_8)),
-        right: None,
-    };
-    let node_3 = Node {
-        value: 3,
-        left: Some(Box::new(node_6)),
-        right: None,
-    };
-    Node {
-        value: 1,
-        left: Some(Box::new(node_2)),
-        right: Some(Box::new(node_3)),
-    }
-}
-
-#[test]
-fn test_diameter_1() {
-    let root = Box::new(make_num_tree_8());
-    let diameter = diameter(Some(&root));
-    assert_eq!(diameter, 3);
-}
-
-#[test]
-fn test_diameter_2() {
-    let root = Box::new(make_num_tree_9());
-    let diameter = diameter(Some(&root));
-    assert_eq!(diameter, 6);
-}
 
 //     10
 //   11    12
 //  2  31
 // ---------------------------------------------------------------------------------------
-// tree_sum 
+// tree_sum
 // ---------------------------------------------------------------------------------------
 
 /// Get sum of all tree nodes recursively
 pub fn tree_sum<T>(root: Option<&NodeRef<T>>) -> Option<T>
-where T: std::ops::Add<Output = T> + Clone
+where
+    T: std::ops::Add<Output = T> + Clone,
 {
     if root.is_none() {
         return None;
@@ -849,7 +659,8 @@ where T: std::ops::Add<Output = T> + Clone
 
 /// Get sum of all tree nodes iteratively
 pub fn tree_sum_iterative<T>(root: Option<&NodeRef<T>>) -> Option<T>
-where T: std::ops::AddAssign + Default + Copy
+where
+    T: std::ops::AddAssign + Default + Copy,
 {
     if root.is_none() {
         return None;
@@ -864,64 +675,18 @@ where T: std::ops::AddAssign + Default + Copy
 }
 
 // ---------------------------------------------------------------------------------------
-// tree_sum tests 
-// ---------------------------------------------------------------------------------------
-
-// generate_tree with (3, 1) will generate this:
-//     1
-//  2     5
-// 3 4   6 7
-
-#[test]
-fn tree_sum_1() {
-    let root = generate_tree(3, &mut 1);
-    let sum = tree_sum(root.as_ref());
-    assert_eq!(sum.unwrap(), 28);
-    let sum = tree_sum_iterative(root.as_ref());
-    assert_eq!(sum.unwrap(), 28);
-}
-
-// generate_tree with (4, 1) will generate this:
-//               1
-//         2           9
-//      3     6    10     13
-//     4 5   7 8  11 12  14 15 
-
-#[test]
-fn tree_sum_2() {
-    let root = generate_tree(4, &mut 1);
-    let sum = tree_sum(root.as_ref());
-    assert_eq!(sum.unwrap(), 120);
-    let sum = tree_sum_iterative(root.as_ref());
-    assert_eq!(sum.unwrap(), 120);
-}
-
-#[test]
-fn tree_sum_3() {
-    let root = Box::new(make_num_tree_1());
-    let sum = tree_sum(Some(&root));
-    assert_eq!(sum.unwrap(), 21);
-    let sum = tree_sum_iterative(Some(&Box::new(make_num_tree_1())));
-    assert_eq!(sum.unwrap(), 21);
-}
-
-#[test]
-fn tree_sum_4() {
-    let root = Box::new(make_num_tree_4());
-    let sum = tree_sum(Some(&root));
-    assert_eq!(sum.unwrap(), 10);
-    let sum = tree_sum_iterative(Some(&Box::new(make_num_tree_4())));
-    assert_eq!(sum.unwrap(), 10);
-}
-
-// ---------------------------------------------------------------------------------------
 // minimum
 // ---------------------------------------------------------------------------------------
 
 fn min2<T>(x: T, y: T) -> T
-where T: std::cmp::PartialOrd
+where
+    T: std::cmp::PartialOrd,
 {
-    if x < y { x } else { y }
+    if x < y {
+        x
+    } else {
+        y
+    }
 }
 
 // n = number of nodes
@@ -929,7 +694,8 @@ where T: std::cmp::PartialOrd
 // space O(n)
 /// Find the minimum value in tree
 pub fn minimum<T>(root: Option<&NodeRef<T>>) -> Option<T>
-where T: Default + Clone + std::cmp::Ord 
+where
+    T: Default + Clone + std::cmp::Ord,
 {
     if root.is_none() {
         return None;
@@ -941,7 +707,7 @@ where T: Default + Clone + std::cmp::Ord
     if root.left().is_some() && root.right.is_some() {
         let left = minimum(root.left.as_ref()).unwrap();
         let right = minimum(root.right.as_ref()).unwrap();
-        let value = root.value.clone(); 
+        let value = root.value.clone();
         return Some(min2(min2(left, right), value));
     }
     if root.left().is_some() {
@@ -954,44 +720,13 @@ where T: Default + Clone + std::cmp::Ord
 }
 
 // ---------------------------------------------------------------------------------------
-// minimum tests 
-// ---------------------------------------------------------------------------------------
-
-#[test]
-fn minimum_1() {
-    let root = Box::new(make_num_tree_1());
-    let result = minimum(Some(&root));
-    assert_eq!(result.unwrap(), -2);
-}
-
-#[test]
-fn minimum_2() {
-    let root = Box::new(make_num_tree_2());
-    let result = minimum(Some(&root));
-    assert_eq!(result.unwrap(), 3);
-}
-
-#[test]
-fn minimum_3() {
-    let root = Box::new(make_num_tree_3());
-    let result = minimum(Some(&root));
-    assert_eq!(result.unwrap(), -13);
-}
-
-#[test]
-fn minimum_4() {
-    let root = Box::new(Node { value: 42, left: None, right: None });
-    let result = minimum(Some(&root));
-    assert_eq!(result.unwrap(), 42);
-}
-
-// ---------------------------------------------------------------------------------------
 // max_path_sum
 // ---------------------------------------------------------------------------------------
 
 /// Find the largest possible sum along a path from the root to a leaf
 pub fn max_path_sum<T>(root: Option<&NodeRef<T>>) -> Option<T>
-where T: Ord + std::ops::Add<Output = T> + Clone
+where
+    T: Ord + std::ops::Add<Output = T> + Clone,
 {
     if root.is_none() {
         return None;
@@ -1013,777 +748,4 @@ where T: Ord + std::ops::Add<Output = T> + Clone
         return Some(root.value().clone() + root.right().unwrap().value().clone());
     }
 }
-
-// ---------------------------------------------------------------------------------------
-// max_path_sum tests
-// ---------------------------------------------------------------------------------------
-
-#[test]
-fn max_path_sum_test_1() {
-    let root = Box::new(make_num_tree_1());
-    let max_sum = max_path_sum(Some(&root));
-    assert_eq!(max_sum.unwrap(), 18);
-}
-
-#[test]
-fn max_path_sum_test_2() {
-    let root = Box::new(make_num_tree_6());
-    let max_sum = max_path_sum(Some(&root));
-    assert_eq!(max_sum.unwrap(), 59);
-}
-
-#[test]
-fn max_path_sum_test_3() {
-    let root = Box::new(make_num_tree_7());
-    let max_sum = max_path_sum(Some(&root));
-    assert_eq!(max_sum.unwrap(), -8);
-}
-
-#[test]
-fn max_path_sum_test_4() {
-    let root = Box::new(Node { value: 42, left: None, right: None });
-    let max_sum = max_path_sum(Some(&root));
-    assert_eq!(max_sum.unwrap(), 42);
-}
-
-// ---------------------------------------------------------------------------------------
-// tree creation for testing
-// ---------------------------------------------------------------------------------------
-
-pub fn make_num_tree_1() -> Node<i32> {
-//       3
-//    /    \
-//   11     4
-//  /  \     \
-// 4   -2     1
-
-    let n_4 = Node {
-        value: 4,
-        left: None,
-        right: None,
-    };
-    let n_neg2 = Node {
-        value: -2,
-        left: None,
-        right: None,
-    };
-    let n_1 = Node {
-        value: 1,
-        left: None,
-        right: None,
-    };
-    let n_4_2 = Node {
-        value: 4,
-        left: None,
-        right: Some(Box::new(n_1)),
-    };
-    let n_11 = Node {
-        value: 11,
-        left: Some(Box::new(n_4)),
-        right: Some(Box::new(n_neg2)),
-    };
-    Node {
-        value: 3,
-        left: Some(Box::new(n_11)),
-        right: Some(Box::new(n_4_2)),
-    }
-}
-
-pub fn make_num_tree_2() -> Node<i32> {
-//       5
-//    /    \
-//   11     3
-//  / \      \
-// 4   14     12
-
-    let n_4 = Node {
-        value: 4,
-        left: None,
-        right: None,
-    };
-    let n_14 = Node {
-        value: 14,
-        left: None,
-        right: None,
-    };
-    let n_12 = Node {
-        value: 12,
-        left: None,
-        right: None,
-    };
-    let n_11 = Node {
-        value: 11,
-        left: Some(Box::new(n_4)),
-        right: Some(Box::new(n_14)),
-    };
-    let n_3 = Node {
-        value: 3,
-        left: None,
-        right: Some(Box::new(n_12)),
-    };
-    Node {
-        value: 5,
-        left: Some(Box::new(n_11)),
-        right: Some(Box::new(n_3)),
-    }
-}
-
-pub fn make_num_tree_3() -> Node<i32> {
-//        -1
-//      /   \
-//    -6    -5
-//   /  \     \
-// -3   -4   -13
-//     /       \
-//    -2       -2
-
-    let n_neg2_l = Node {
-        value: -2,
-        left: None,
-        right: None,
-    };
-    let n_neg2_r = Node {
-        value: -2,
-        left: None,
-        right: None,
-    };
-
-    let n_neg3 = Node {
-        value: -3,
-        left: None,
-        right: None,
-    };
-    let n_neg4 = Node {
-        value: -4,
-        left: Some(Box::new(n_neg2_l)),
-        right: None,
-    };
-    let n_neg13 = Node {
-        value: -13,
-        left: None,
-        right: Some(Box::new(n_neg2_r)),
-    };
-
-    let n_neg6 = Node {
-        value: -6,
-        left: Some(Box::new(n_neg3)),
-        right: Some(Box::new(n_neg4)),
-    };
-    let n_neg5 = Node {
-        value: -6,
-        left: None,
-        right: Some(Box::new(n_neg13)),
-    };
-    Node {
-        value: -1,
-        left: Some(Box::new(n_neg6)),
-        right: Some(Box::new(n_neg5)),
-    }
-}
-
-pub fn make_num_tree_4() -> Node<i32> {
-//      1
-//    /   \
-//   6     0
-//  / \     \
-// 3   -6    2
-//    /       \
-//   2         2
-
-    let n_2_r_2 = Node {
-        value: 2,
-        left: None,
-        right: None,
-    };
-    let n_2_r_1 = Node {
-        value: 2,
-        left: None,
-        right: Some(Box::new(n_2_r_2)),
-    };
-    let n_0 = Node {
-        value: 0,
-        left: None,
-        right: Some(Box::new(n_2_r_1)),
-    };
-    let n_3 = Node {
-        value: 3,
-        left: None,
-        right: None,
-    };
-    let n_2_l = Node {
-        value: 2,
-        left: None,
-        right: None,
-    };
-    let n_neg6 = Node {
-        value: -6,
-        left: Some(Box::new(n_2_l)),
-        right: None,
-    };
-    let n_6 = Node {
-        value: 6,
-        left: Some(Box::new(n_3)),
-        right: Some(Box::new(n_neg6)),
-    };
-    Node {
-        value: 1,
-        left: Some(Box::new(n_6)),
-        right: Some(Box::new(n_0)),
-    }
-}
-
-fn make_num_tree_5() -> Node<i32> {
-//          5
-//        /   \
-//      11     3
-//     /  \     \
-//    4    2     1
-
-    let node_4 = Node {
-        value: 4,
-        left: None,
-        right: None,
-    };
-    let node_2 = Node {
-        value: 2,
-        left: None,
-        right: None,
-    };
-    let node_1 = Node {
-        value: 1,
-        left: None,
-        right: None,
-    };
-
-    let node_11 = Node {
-        value: 11,
-        left: Some(Box::new(node_4)),
-        right: Some(Box::new(node_2)), 
-    };
-    let node_3 = Node {
-        value: 3,
-        left: None,
-        right: Some(Box::new(node_1)), 
-    };
-
-    let root = Node {
-        value: 5,
-        left: Some(Box::new(node_11)),
-        right: Some(Box::new(node_3)),
-    };
-    root
-}
-
-
-pub fn make_num_tree_6() -> Node<i32> {
-//        5
-//     /    \
-//    11    54
-//  /   \
-// 20   15
-//      / \
-//     1  3
-
-    let n_1 = Node {
-        value: 1,
-        left: None,
-        right: None,
-    };
-    let n_3 = Node {
-        value: 3,
-        left: None,
-        right: None,
-    };
-    let n_15 = Node {
-        value: 15,
-        left: Some(Box::new(n_1)),
-        right: Some(Box::new(n_3)), 
-    };
-
-    let n_20 = Node {
-        value: 20,
-        left: None,
-        right: None,
-    };
-    let n_11 = Node {
-        value: 11,
-        left: Some(Box::new(n_20)),
-        right: Some(Box::new(n_15)), 
-    };
-    let n_54 = Node {
-        value: 54,
-        left: None,
-        right: None,
-    };
-    Node {
-        value: 5,
-        left: Some(Box::new(n_11)),
-        right: Some(Box::new(n_54)),
-    }
-}
-
-pub fn make_num_tree_7() -> Node<i32> {
-//        -1
-//      /   \
-//    -6    -5
-//   /  \     \
-// -3   0    -13
-//     /       \
-//    -1       -2
-
-    let n_neg1 = Node {
-        value: -1,
-        left: None,
-        right: None,
-    };
-    let n_neg2 = Node {
-        value: -2,
-        left: None,
-        right: None,
-    };
-
-    let n_neg3 = Node {
-        value: -3,
-        left: None,
-        right: None,
-    };
-    let n_0 = Node {
-        value: 0,
-        left: Some(Box::new(n_neg1)),
-        right: None,
-    };
-    let n_neg13 = Node {
-        value: -13,
-        left: None,
-        right: Some(Box::new(n_neg2)),
-    };
-
-    let n_neg6 = Node {
-        value: -6,
-        left: Some(Box::new(n_neg3)),
-        right: Some(Box::new(n_0)),
-    };
-    let n_neg5 = Node {
-        value: -5,
-        left: None,
-        right: Some(Box::new(n_neg13)),
-    };
-    Node {
-        value: -1,
-        left: Some(Box::new(n_neg6)),
-        right: Some(Box::new(n_neg5)),
-    }
-}
-
-pub fn make_char_tree_1() -> Node<char> {
-//      a
-//    /   \
-//   b     c
-//  / \     \
-// d   e     f
-
-    let f = Node {
-        value: 'f',
-        left: None,
-        right: None,
-    };
-    let e = Node {
-        value: 'e',
-        left: None,
-        right: None,
-    };
-    let d = Node {
-        value: 'd',
-        left: None,
-        right: None,
-    };
-
-    let c = Node {
-        value: 'c',
-        left: None,
-        right: Some(Box::new(f)), 
-    };
-    let b = Node {
-        value: 'b',
-        left: Some(Box::new(d)),
-        right: Some(Box::new(e)), 
-    };
-
-    let a = Node {
-        value: 'a',
-        left: Some(Box::new(b)),
-        right: Some(Box::new(c)),
-    };
-    a
-}
-
-pub fn make_char_tree_2() -> Node<char> {
-//      a
-//    /   \
-//   b     c
-//  / \     \
-// d   e     f
-//    /       \
-//   g         h
-
-    let g = Node {
-        value: 'g',
-        left: None,
-        right: None,
-    };
-    let h = Node {
-        value: 'h',
-        left: None,
-        right: None,
-    };
-    let f = Node {
-        value: 'f',
-        left: None,
-        right: Some(Box::new(h)),
-    };
-    let e = Node {
-        value: 'e',
-        left: Some(Box::new(g)),
-        right: None,
-    };
-    let d = Node {
-        value: 'd',
-        left: None,
-        right: None,
-    };
-
-    let c = Node {
-        value: 'c',
-        left: None,
-        right: Some(Box::new(f)), 
-    };
-    let b = Node {
-        value: 'b',
-        left: Some(Box::new(d)),
-        right: Some(Box::new(e)), 
-    };
-
-    let a = Node {
-        value: 'a',
-        left: Some(Box::new(b)),
-        right: Some(Box::new(c)),
-    };
-    a
-}
-
-pub fn make_char_tree_3() -> Node<char> {
-//      a
-//       \
-//        b
-//       /
-//      c
-//    /  \
-//   x    d
-//         \
-//          e
-
-    let e = Node {
-        value: 'e',
-        left: None,
-        right: None,
-    };
-    let d = Node {
-        value: 'd',
-        left: None,
-        right: Some(Box::new(e)),
-    };
-    let x = Node {
-        value: 'x',
-        left: None,
-        right: None,
-    };
-    let c = Node {
-        value: 'c',
-        left: Some(Box::new(x)),
-        right: Some(Box::new(d)),
-    };
-    let b = Node {
-        value: 'b',
-        left: Some(Box::new(c)),
-        right: None,
-    };
-    let a = Node {
-        value: 'a',
-        left: None,
-        right: Some(Box::new(b)),
-    };
-    a
-}
-
-#[test]
-fn contains_a() {
-    let root = Box::new(make_char_tree_1());
-    let result = tree_contains(&root, 'a');
-    assert!(result == true);
-}
-
-#[test]
-fn contains_e() {
-    let root = Box::new(make_char_tree_1());
-    let result = tree_contains(&root, 'g');
-    assert!(result == false);
-}
-
-
-
-#[test]
-fn level_order_char_tree_1() {
-    let root = make_char_tree_1();
-    let output: Vec<char> = LevelOrderIterator::new(&root)
-        .map(|x| x.to_owned())
-        .collect();
-    assert_eq!(output, vec!['a', 'b', 'c', 'd', 'e', 'f']);
-}
-
-#[test]
-fn level_order_char_tree_2() {
-    let root = make_char_tree_2();
-    let output: Vec<char> = LevelOrderIterator::new(&root)
-        .map(|x| x.to_owned())
-        .collect();
-    assert_eq!(output, vec!['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']);
-}
-
-#[test]
-fn level_order_char_tree_3() {
-    let root = make_char_tree_3();
-    let output: Vec<char> = LevelOrderIterator::new(&root)
-        .map(|x| x.to_owned())
-        .collect();
-    assert_eq!(output, vec!['a', 'b', 'c', 'x', 'd', 'e']);
-}
-
-#[test]
-fn pre_order_char_tree_1() {
-    let root = make_char_tree_1();
-    let output: Vec<char> = PreOrderIterator::new(&root)
-        .map(|x| x.to_owned())
-        .collect();
-    assert_eq!(output, vec!['a', 'b', 'd', 'e', 'c', 'f']);
-}
-
-#[test]
-fn pre_order_char_tree_2() {
-    let root = make_char_tree_2();
-    let output: Vec<char> = PreOrderIterator::new(&root)
-        .map(|x| x.to_owned())
-        .collect();
-    assert_eq!(output, vec!['a', 'b', 'd', 'e', 'g', 'c', 'f', 'h']);
-}
-
-#[test]
-fn pre_order_char_tree_3() {
-    let root = make_char_tree_3();
-    let output: Vec<char> = PreOrderIterator::new(&root)
-        .map(|x| x.to_owned())
-        .collect();
-    assert_eq!(output, vec!['a', 'b', 'c', 'x', 'd', 'e']);
-}
-
-#[test]
-fn post_order_char_tree_1() {
-    let root = make_char_tree_1();
-    let output: Vec<char> = PostOrderIterator::new(&root)
-        .map(|x| x.to_owned())
-        .collect();
-    assert_eq!(output, vec!['d', 'e', 'b', 'f', 'c', 'a']);
-}
-
-#[test]
-fn post_order_char_tree_2() {
-    let root = make_char_tree_2();
-    let output: Vec<char> = PostOrderIterator::new(&root)
-        .map(|x| x.to_owned())
-        .collect();
-    assert_eq!(output, vec!['d', 'g', 'e', 'b', 'h', 'f', 'c', 'a']);
-}
-
-#[test]
-fn post_order_char_tree_3() {
-    let root = make_char_tree_3();
-    let output: Vec<char> = PostOrderIterator::new(&root)
-        .map(|x| x.to_owned())
-        .collect();
-    assert_eq!(output, vec!['x', 'e', 'd', 'c', 'b', 'a']);
-}
-
-#[test]
-fn in_order_char_tree_1() {
-    let root = make_char_tree_1();
-    let output: Vec<char> = InOrderIterator::new(&root)
-        .map(|x| x.to_owned())
-        .collect();
-    assert_eq!(output, vec!['d', 'b', 'e', 'a', 'c', 'f']);
-}
-
-#[test]
-fn in_order_char_tree_2() {
-    let root = make_char_tree_2();
-    let output: Vec<char> = InOrderIterator::new(&root)
-        .map(|x| x.to_owned())
-        .collect();
-    assert_eq!(output, vec!['d', 'b', 'g', 'e', 'a', 'c', 'f', 'h']);
-}
-
-#[test]
-fn in_order_char_tree_3() {
-    let root = make_char_tree_3();
-    let output: Vec<char> = InOrderIterator::new(&root)
-        .map(|x| x.to_owned())
-        .collect();
-    assert_eq!(output, vec!['a', 'x', 'c', 'd', 'e', 'b']);
-}
-
-// ---------------------------------------------------------------------------------------
-// iterative tests
-// ---------------------------------------------------------------------------------------
-
-#[test]
-fn test_in_order_iterative() {
-    let mut counter: i32 = 1;
-    let tree = generate_tree(3, &mut counter);
-    let mut output: Vec<i32> = Vec::new();
-    inorder_iterative(tree.as_ref(), |node_value, _level| {
-        output.push(*node_value);
-    });
-    assert_eq!(output, vec![3, 2, 4, 1, 6, 5, 7]);
-}
-
-#[test]
-fn test_pre_order_iterative() {
-    let mut counter: i32 = 1;
-    let tree = generate_tree(3, &mut counter);
-    let mut output: Vec<i32> = Vec::new();
-    preorder_iterative(tree.as_ref(), |node_value, _level| {
-        output.push(*node_value);
-    });
-    assert_eq!(output, vec![1, 2, 3, 4, 5, 6, 7]);
-}
-
-#[test]
-fn test_post_order_iterative() {
-    let mut counter: i32 = 1;
-    let tree = generate_tree(3, &mut counter);
-    let mut output: Vec<i32> = Vec::new();
-    postorder_iterative(tree.as_ref(), |node_value, _level| {
-        output.push(*node_value);
-    });
-    assert_eq!(output, vec![3, 4, 2, 6, 7, 5, 1]);
-}
-
-#[test]
-fn test_level_order_iterative() {
-    let mut counter: i32 = 1;
-    let tree = generate_tree(3, &mut counter);
-    let mut output: Vec<i32> = Vec::new();
-    levelorder_iterative(tree.as_ref(), |node_value| {
-        output.push(*node_value);
-    });
-    assert_eq!(output, vec![1, 2, 5, 3, 4, 6, 7]);
-}
-
-// ---------------------------------------------------------------------------------------
-// iterator tests
-// ---------------------------------------------------------------------------------------
-
-#[test]
-fn test_in_order_iterator() {
-    let mut counter: i32 = 1;
-    let tree = generate_tree(3, &mut counter);
-    let root = tree.as_ref().unwrap();
-    let output: Vec<i32> = InOrderIterator::new(root)
-        .map(|x| x.to_owned())
-        .collect();
-    assert_eq!(output, vec![3, 2, 4, 1, 6, 5, 7]);
-}
-
-#[test]
-fn test_pre_order_iterator() {
-    let mut counter: i32 = 1;
-    let tree = generate_tree(3, &mut counter);
-    let root = tree.as_ref().unwrap();
-    let output: Vec<i32> = PreOrderIterator::new(root)
-        .map(|x| x.to_owned())
-        .collect();
-    assert_eq!(output, vec![1, 2, 3, 4, 5, 6, 7]);
-}
-
-#[test]
-fn test_post_order_iterator() {
-    let mut counter: i32 = 1;
-    let tree = generate_tree(3, &mut counter);
-    let root = tree.as_ref().unwrap();
-    let output: Vec<i32> = PostOrderIterator::new(root)
-        .map(|x| x.to_owned())
-        .collect();
-    assert_eq!(output, vec![3, 4, 2, 6, 7, 5, 1]);
-}
-
-#[test]
-fn test_level_order_iterator() {
-    let mut counter: i32 = 1;
-    let tree = generate_tree(3, &mut counter);
-    let root = tree.as_ref().unwrap();
-    let output: Vec<i32> = LevelOrderIterator::new(root)
-        .map(|x| x.to_owned())
-        .collect();
-    assert_eq!(output, vec![1, 2, 5, 3, 4, 6, 7]);
-}
-
-// ---------------------------------------------------------------------------------------
-// recursive tests
-// ---------------------------------------------------------------------------------------
-
-/*
-#[test]
-fn test_in_order_recursive() {
-    let mut counter: i32 = 1;
-    let tree = generate_tree(3, &mut counter).unwrap();
-    let mut output: Vec<i32> = Vec::new();
-    inorder_recursive(&tree, |node_value| {
-        output.push(*node_value);
-    });
-    assert_eq!(output, vec![3, 2, 4, 1, 6, 5, 7]);
-}
-
-#[test]
-fn test_pre_order_recursive() {
-    let mut counter: i32 = 1;
-    let tree = generate_tree(3, &mut counter).unwrap();
-    let mut output: Vec<i32> = Vec::new();
-    preorder_recursive(&tree, |node_value, _level| {
-        output.push(*node_value);
-    });
-    assert_eq!(output, vec![1, 2, 3, 4, 5, 6, 7]);
-}
-
-#[test]
-fn test_post_order_recursive() {
-    let mut counter: i32 = 1;
-    let tree = generate_tree(3, &mut counter).unwrap();
-    let mut output: Vec<i32> = Vec::new();
-    postorder_recursive(&tree, |node_value, _level| {
-        output.push(*node_value);
-    });
-    assert_eq!(output, vec![3, 4, 2, 6, 7, 5, 1]);
-}
-
-#[test]
-fn test_level_order_recursive() {
-    let mut counter: i32 = 1;
-    let tree = generate_tree(3, &mut counter);
-    let mut output: Vec<i32> = Vec::new();
-    levelorder_recursive(&tree, |node_value, _level| {
-        output.push(*node_value);
-    });
-    assert_eq!(output, vec![1, 2, 5, 3, 4, 6, 7]);
-}
-*/
-
-
 
