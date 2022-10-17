@@ -1,7 +1,7 @@
 use std::fmt::Display;
 use std::collections::VecDeque;
 
-type NodeRef<T> = Box<Node<T>>;
+pub type NodeRef<T> = Box<Node<T>>;
 
 /// A tree implementation
 
@@ -30,20 +30,6 @@ impl<T> Node<T> {
 
     pub fn right(&self) -> Option<&Box<Node<T>>> {
         self.right.as_ref()
-    }
-
-    pub fn depth_recursive(&self) -> usize {
-        let l_depth = if self.left.is_some() {
-            self.left.as_ref().unwrap().depth_recursive()
-        } else {
-            0
-        };
-        let r_depth = if self.right.is_some() {
-            self.right.as_ref().unwrap().depth_recursive()
-        } else {
-            0
-        };
-        std::cmp::max(l_depth, r_depth) + 1
     }
 
     // idk if this works no tests either
@@ -136,12 +122,69 @@ fn height_5() {
 }
 
 
-fn depth<T>(root: Option<&NodeRef<T>>) -> isize {
-    0
+pub fn depth<T>(root: Option<&NodeRef<T>>, node: &NodeRef<T>) -> isize {
+    if root.is_none() {
+        return -1;
+    }
+    let root = root.unwrap();
+
+    let mut dist = -1;
+    if std::ptr::eq(root, node) {
+        return dist + 1;
+    }
+    dist = depth(root.left.as_ref(), node);
+    if dist >= 0 {
+        return dist + 1;
+    }
+    dist = depth(root.right.as_ref(), node);
+    if dist >= 0 {
+        return dist + 1;
+    }
+
+    dist
 }
 
+#[test]
+fn depth_1() {
+    let root = generate_tree(3, &mut 1).unwrap();
 
+    let d = depth(Some(&root), &root);
+    assert_eq!(d, 0);
 
+    let search = root.left.as_ref().unwrap();
+    let d = depth(Some(&root), search);
+    assert_eq!(d, 1);
+
+    let search = root.left.as_ref().unwrap().left.as_ref().unwrap();
+    let d = depth(Some(&root), search);
+    assert_eq!(d, 2);
+}
+
+#[test]
+fn depth_2() {
+//      a
+//       \
+//        b
+//       /
+//      c
+//    /  \
+//   x    d
+//         \
+//          e
+    let root = Box::new(make_char_tree_3());
+    let search = root.right.as_ref().unwrap();
+    let search = search.left.as_ref().unwrap();
+    let search = search.right.as_ref().unwrap();
+    let search = search.right.as_ref().unwrap();
+    let d = depth(Some(&root), search);
+    assert_eq!(d, 4);
+
+    let search = root.right.as_ref().unwrap();
+    let search = search.left.as_ref().unwrap();
+    let search = search.left.as_ref().unwrap();
+    let d = depth(Some(&root), search);
+    assert_eq!(d, 3);
+}
 
 
 
@@ -473,7 +516,9 @@ pub fn levelorder_recursive<T: Display>(node: Option<&NodeRef<T>>) {
     let node = node.as_ref().unwrap();
     let h = height(Some(node));
     for i in 1..=h {
+        print!("l:{} ", i);
         node.print_level(i);
+        println!("");
     }
 }
 

@@ -11,7 +11,8 @@ use binary_tree::tree::height;
 fn main() {
     println!("Hello Trees");
     let tree = make_num_tree_7();
-    tree.print_recursive(0);
+    //tree.print_recursive(0);
+    levelorder_recursive(Some(&Box::new(tree)));
     /*
     let mut counter = 1;
     let tree = generate_tree(4, &mut counter).unwrap();
