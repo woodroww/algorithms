@@ -22,6 +22,15 @@ where
 }
 
 impl<T> Node<T> {
+
+    pub fn new(value: T) -> Self {
+        Self {
+            value,
+            left: None,
+            right: None,
+        }
+    }
+
     pub fn value(&self) -> &T {
         &self.value
     }
@@ -556,6 +565,21 @@ pub fn invert_tree<T: Clone>(root: Option<&NodeRef<T>>) -> Option<NodeRef<T>> {
         })),
         None => None,
     }
+}
+
+// ---------------------------------------------------------------------------------------
+// max_depth
+// ---------------------------------------------------------------------------------------
+
+pub fn max_depth<T>(root: Option<&NodeRef<T>>) -> isize {
+    if root.is_none() {
+        return -1;
+    }
+    let root = root.unwrap();
+
+    let l_depth = max_depth(root.left.as_ref());
+    let r_depth = max_depth(root.right.as_ref());
+    std::cmp::max(l_depth, r_depth) + 1
 }
 
 // ---------------------------------------------------------------------------------------

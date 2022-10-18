@@ -1,6 +1,34 @@
 use binary_tree::tree::*; 
 use binary_tree::tree_creation::*;
 
+#[test]
+fn test_max_depth_1() {
+    let root = Box::new(make_num_tree_1());
+    let depth = max_depth(Some(&root));
+    assert_eq!(depth, 2);
+}
+
+#[test]
+fn test_max_depth_2() {
+    let root = Box::new(make_num_tree_3());
+    let depth = max_depth(Some(&root));
+    assert_eq!(depth, 3);
+}
+
+#[test]
+fn test_max_depth_3() {
+    let root = Box::new(make_char_tree_3());
+    let depth = max_depth(Some(&root));
+    assert_eq!(depth, 4);
+}
+
+#[test]
+fn test_max_depth_4() {
+    let root = Box::new(make_char_tree_3());
+    let depth = max_depth(root.right.as_ref());
+    assert_eq!(depth, 3);
+}
+
 #[cfg(test)]
 mod max_width_tests {
     use super::*;
@@ -33,6 +61,23 @@ mod max_width_tests {
     }
 }
 
+#[test]
+fn test_insert_1() {
+
+    //pub fn insert(&mut self, value: T) {
+//pub fn make_num_tree_6() -> Node<i32> {
+    //        5
+    //     /    \
+    //    11    54
+    //  /   \
+    // 20   15
+    //      / \
+    //     1  3
+
+    let mut root = Box::new(make_num_tree_6());
+    root.insert(13);
+
+}
 
 #[test]
 fn test_diameter_1() {

@@ -414,6 +414,107 @@ pub fn make_num_tree_9() -> Node<i32> {
     }
 }
 
+pub fn make_num_tree_10() -> Node<i32> {
+//                     1
+//           2                   3
+//       4       5           6       7
+//    8     9             10   11 
+//  12  13
+// 14 15
+
+    let node_15 = Node {
+        value: 15,
+        left: None,
+        right: None,
+    };
+
+    let node_14 = Node {
+        value: 14,
+        left: None,
+        right: None,
+    };
+
+    let node_13 = Node {
+        value: 13,
+        left: None,
+        right: None,
+    };
+
+    let node_12 = Node {
+        value: 12,
+        left: Some(Box::new(node_14)),
+        right: Some(Box::new(node_15)),
+    };
+
+    let node_11 = Node {
+        value: 11,
+        left: None,
+        right: None,
+    };
+
+    let node_10 = Node {
+        value: 10,
+        left: None,
+        right: None,
+    };
+
+    let node_9 = Node {
+        value: 9,
+        left: None,
+        right: None,
+    };
+
+    let node_8 = Node {
+        value: 8,
+        left: Some(Box::new(node_12)),
+        right: Some(Box::new(node_13)),
+    };
+
+    let node_7 = Node {
+        value: 7,
+        left: None,
+        right: None,
+    };
+
+    let node_6 = Node {
+        value: 6,
+        left: Some(Box::new(node_10)),
+        right: Some(Box::new(node_11)),
+    };
+
+    let node_5 = Node {
+        value: 5,
+        left: None,
+        right: None,
+    };
+
+    let node_4 = Node {
+        value: 4,
+        left: Some(Box::new(node_8)),
+        right: Some(Box::new(node_9)),
+    };
+
+    let node_3 = Node {
+        value: 3,
+        left: Some(Box::new(node_6)),
+        right: Some(Box::new(node_7)),
+    };
+
+    let node_2 = Node {
+        value: 2,
+        left: Some(Box::new(node_4)),
+        right: Some(Box::new(node_5)),
+    };
+
+    Node {
+        value: 1,
+        left: Some(Box::new(node_2)),
+        right: Some(Box::new(node_3)),
+    }
+}
+
+
+
 pub fn make_char_tree_1() -> Node<char> {
     //      a
     //    /   \
