@@ -12,8 +12,14 @@ use binary_tree::tree_creation::*;
 fn main() {
     println!("Hello Trees");
     let tree = make_num_tree_7();
-    //tree.print_recursive(0);
-    levelorder_recursive(Some(&Box::new(tree)));
+    let tree_box = Box::new(tree);
+
+    levelorder_recursive_print(Some(&tree_box));
+    let tree_2 = balanced(&tree_box);
+    let tree_2_box = Box::new(tree_2);
+
+    levelorder_recursive_print(Some(&tree_2_box));
+
     /*
     let mut counter = 1;
     let tree = generate_tree(4, &mut counter).unwrap();
@@ -100,7 +106,7 @@ fn print_everything() {
     println!();
 
     println!("----levelorder-recursive-------");
-    levelorder_recursive(tree.as_ref());
+    levelorder_recursive_print(tree.as_ref());
     println!();
     println!("----levelorder-iterative-------");
     levelorder_iterative(tree.as_ref(), |node| {

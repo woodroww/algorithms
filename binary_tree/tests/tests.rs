@@ -76,7 +76,8 @@ fn test_insert_1() {
 
     let mut root = Box::new(make_num_tree_6());
     root.insert(13);
-
+    root.print_recursive(0);
+    assert_eq!(root.left.unwrap().right.unwrap().right.unwrap().value, 13);
 }
 
 #[test]

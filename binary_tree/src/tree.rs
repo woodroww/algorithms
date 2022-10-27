@@ -99,6 +99,59 @@ where
             }
         }
     }
+
+}
+
+pub fn balanced<T: Copy + std::fmt::Display>(root: &Node<T>) -> Node<T> {
+    let arr: Vec<&Node<T>> = InOrderNodeIterator::new(root).collect();
+
+    for what in &arr {
+        print!("{} ", what.value);
+    }
+    println!();
+    println!("inorder array len - 1 = {}", arr.len() - 1);
+    let upper = arr.len() - 1;
+    build_balanced(&arr, 0, upper).unwrap()
+}
+/*
+# build returns a pointer to the root Node of the sub-tree
+# lower is the lower index of the array
+# upper is the upper index of the array
+def build(arr, lower, upper):
+    size = upper - lower + 1
+    if size <= 0: return None
+    middle = size // 2 + lower
+
+    subtree_root = Node(arr[middle])
+    subtree_root.left = build(arr, lower, middle - 1)
+    subtree_root.right = build(arr, middle + 1, upper)
+    return subtree_root
+*/
+fn build_balanced<T: Copy>(arr: &Vec<&Node<T>>, lower: usize, upper: usize) -> Option<Node<T>> {
+    let test_size = upper as isize - lower as isize + 1;
+    if test_size <= 0 {
+        return None;
+    }
+
+    let size = upper - lower + 1;
+    let mid = (size / 2) + lower;
+    let mut subtree_root = Node {
+        value: arr[mid].value,
+        left: None,
+        right: None,
+    };
+    if mid > 0 {
+        let left = build_balanced(arr, lower, mid - 1);
+        if let Some(l) = left {
+            subtree_root.left = Some(Box::new(l));
+        }
+    }
+    let right = build_balanced(arr, mid + 1, upper);
+    if let Some(r) = right {
+        subtree_root.right = Some(Box::new(r));
+    }
+
+    Some(subtree_root)
 }
 
 pub fn height<T>(root: Option<&NodeRef<T>>) -> isize {
@@ -220,6 +273,61 @@ where
                 }
             }
         }
+    }
+}
+
+
+
+pub struct InOrderNodeIterator<'a, T> {
+    stack: Vec<&'a Node<T>>,
+    current: Option<&'a Node<T>>,
+}
+
+impl<'a, T> InOrderNodeIterator<'a, T> {
+    pub fn new(root: &'a Node<T>) -> Self {
+        Self {
+            stack: Vec::new(),
+            current: Some(root),
+        }
+    }
+}
+
+impl<'a, T> Iterator for InOrderNodeIterator<'a, T> {
+    type Item = &'a Node<T>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            if self.current.is_some() {
+                let node = self.current.unwrap();
+                self.stack.push(node);
+                match &node.left {
+                    Some(left) => {
+                        self.current = Some(left.as_ref());
+                    }
+                    None => {
+                        self.current = None;
+                    }
+                }
+            } else {
+                match self.stack.pop() {
+                    Some(node) => {
+                        match &node.right {
+                            Some(right) => {
+                                self.current = Some(right.as_ref());
+                            }
+                            None => {
+                                self.current = None;
+                            }
+                        }
+                        return Some(node);
+                    }
+                    None => {
+                        break;
+                    }
+                }
+            }
+        }
+        None
     }
 }
 
@@ -457,12 +565,12 @@ impl<'a, T> Iterator for PostOrderIterator<'a, T> {
 Commentary
 */
 
-pub fn levelorder_recursive<T: Display>(node: Option<&NodeRef<T>>) {
+pub fn levelorder_recursive_print<T: Display>(node: Option<&NodeRef<T>>) {
     if node.is_none() {
         return;
     }
     let node = node.as_ref().unwrap();
-    let h = height(Some(node));
+    let h = height(Some(node)) + 1;
     for i in 1..=h {
         print!("l:{} ", i);
         node.print_level(i);
