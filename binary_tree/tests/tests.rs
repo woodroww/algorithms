@@ -2,6 +2,95 @@ use binary_tree::tree::*;
 use binary_tree::tree_creation::*;
 
 #[test]
+fn test_balance_1() {
+    let n_3 = Node {
+        value: 10,
+        left: None,
+        right: None,
+    };
+    let n_2 = Node {
+        value: 20,
+        left: Some(Box::new(n_3)),
+        right: None,
+    };
+    let root = Node {
+        value: 30,
+        left: Some(Box::new(n_2)),
+        right: None,
+    };
+
+    let balanced_tree = balanced(&root);
+    let result: Vec<i32> = LevelOrderIterator::new(&balanced_tree)
+        .map(|x| x.to_owned())
+        .collect();
+    assert_eq!(result, vec![20, 10, 30]);
+}
+
+#[test]
+fn test_balance_2() {
+    let n_1 = Node {
+        value: 1,
+        left: None,
+        right: None,
+    };
+    let n_2 = Node {
+        value: 2,
+        left: Some(Box::new(n_1)),
+        right: None,
+    };
+    let n_3 = Node {
+        value: 3,
+        left: Some(Box::new(n_2)),
+        right: None,
+    };
+
+    let n_7 = Node {
+        value: 7,
+        left: None,
+        right: None,
+    };
+    let n_6 = Node {
+        value: 6,
+        left: None,
+        right: Some(Box::new(n_7)),
+    };
+    let n_5 = Node {
+        value: 5,
+        left: None,
+        right: Some(Box::new(n_6)),
+    };
+
+    let root = Node {
+        value: 4,
+        left: Some(Box::new(n_3)),
+        right: Some(Box::new(n_5)),
+    };
+
+    let balanced_tree = balanced(&root);
+    let result: Vec<i32> = LevelOrderIterator::new(&balanced_tree)
+        .map(|x| x.to_owned())
+        .collect();
+    assert_eq!(result, vec![4, 2, 6, 1, 3, 5, 7]);
+}
+
+#[test]
+fn test_order_1() {
+
+    // this should work for all make_num_tree_*
+    let root = make_num_tree_4();
+    let mut arr: Vec<i32> = InOrderIterator::new(&root)
+        .map(|x| x.to_owned())
+        .collect();
+    let ordered_tree = Node::from_array(&arr);
+    let result: Vec<i32> = InOrderIterator::new(&ordered_tree)
+        .map(|x| x.to_owned())
+        .collect();
+    arr.sort();
+    assert_eq!(result, arr);
+}
+
+
+#[test]
 fn test_max_depth_1() {
     let root = Box::new(make_num_tree_1());
     let depth = max_depth(Some(&root));

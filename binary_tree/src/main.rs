@@ -18,8 +18,24 @@ fn main() {
     let tree_2 = balanced(&tree_box);
     let tree_2_box = Box::new(tree_2);
 
+    println!("balanced of above");
     levelorder_recursive_print(Some(&tree_2_box));
+    
+    let arr: Vec<i32> = InOrderIterator::new(&tree_box)
+        .map(|x| x.to_owned())
+        .collect();
 
+    let tree_3 = Node::from_array(&arr);
+    let tree_3_box = Box::new(tree_3);
+    println!("created by inserting so should be in order");
+    levelorder_recursive_print(Some(&tree_3_box));
+
+    let tree_4 = balanced(&tree_3_box);
+    let tree_4_box = Box::new(tree_4);
+
+    println!("balanced of above");
+    levelorder_recursive_print(Some(&tree_4_box));
+    //insert
     /*
     let mut counter = 1;
     let tree = generate_tree(4, &mut counter).unwrap();

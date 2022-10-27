@@ -22,7 +22,6 @@ where
 }
 
 impl<T> Node<T> {
-
     pub fn new(value: T) -> Self {
         Self {
             value,
@@ -72,6 +71,20 @@ impl<T> Node<T> {
 
 impl<T> Node<T>
 where
+    T: std::cmp::PartialEq + std::cmp::PartialOrd + Copy,
+{
+    pub fn from_array(arr: &Vec<T>) -> Node<T> {
+        let mut iter = arr.iter();
+        let mut tree = Node::new(*iter.nth(0).unwrap());
+        while let Some(item) = iter.next() {
+            tree.insert(*item);
+        }
+        tree
+    }
+}
+
+impl<T> Node<T>
+where
     T: std::cmp::PartialEq + std::cmp::PartialOrd,
 {
     pub fn insert(&mut self, value: T) {
@@ -99,34 +112,16 @@ where
             }
         }
     }
-
 }
 
 pub fn balanced<T: Copy + std::fmt::Display>(root: &Node<T>) -> Node<T> {
     let arr: Vec<&Node<T>> = InOrderNodeIterator::new(root).collect();
-
-    for what in &arr {
-        print!("{} ", what.value);
-    }
-    println!();
-    println!("inorder array len - 1 = {}", arr.len() - 1);
     let upper = arr.len() - 1;
     build_balanced(&arr, 0, upper).unwrap()
 }
-/*
-# build returns a pointer to the root Node of the sub-tree
-# lower is the lower index of the array
-# upper is the upper index of the array
-def build(arr, lower, upper):
-    size = upper - lower + 1
-    if size <= 0: return None
-    middle = size // 2 + lower
 
-    subtree_root = Node(arr[middle])
-    subtree_root.left = build(arr, lower, middle - 1)
-    subtree_root.right = build(arr, middle + 1, upper)
-    return subtree_root
-*/
+// https://algodaily.com/lessons/how-do-we-get-a-balanced-binary-tree
+
 fn build_balanced<T: Copy>(arr: &Vec<&Node<T>>, lower: usize, upper: usize) -> Option<Node<T>> {
     let test_size = upper as isize - lower as isize + 1;
     if test_size <= 0 {
@@ -275,8 +270,6 @@ where
         }
     }
 }
-
-
 
 pub struct InOrderNodeIterator<'a, T> {
     stack: Vec<&'a Node<T>>,
@@ -759,7 +752,6 @@ pub fn diameter<T>(root: Option<&NodeRef<T>>) -> isize {
     max
 }
 
-
 //     10
 //   11    12
 //  2  31
@@ -884,4 +876,3 @@ where
         return Some(root.value().clone() + root.right().unwrap().value().clone());
     }
 }
-
