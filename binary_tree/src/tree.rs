@@ -43,6 +43,10 @@ impl<T> Node<T> {
         self.right.as_ref()
     }
 
+    pub fn has_children(&self) -> bool {
+        self.left.is_some() || self.right.is_some()
+    }
+
     // idk if this works no tests either
     pub fn height_iterative(&self) -> usize {
         let mut queue: VecDeque<&Node<T>> = VecDeque::new();
