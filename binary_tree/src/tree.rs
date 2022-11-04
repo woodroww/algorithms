@@ -270,15 +270,29 @@ where
             stack.push(Rc::clone(&node));
             let cell: &RefCell<Node<T>> = node.borrow();
             let node = cell.borrow();
-            current = node.left;
+            //current = node.left;
+            current = match &node.left {
+                Some(left) => {
+                    Some(Rc::clone(left))
+                }
+                None => {
+                    None
+                }
+            };
+                
         } else {
             match stack.pop() {
                 Some(node) => {
-                    let h = height(Some(node));
+                    let h = height(Some(Rc::clone(&node)));
                     let cell: &RefCell<Node<T>> = node.borrow();
                     let node = cell.borrow();
                     call_me(&node.value, root_height - h);
-                    current = node.right;
+                    current = match &node.right {
+                        Some(right) => {
+                            Some(Rc::clone(right))
+                        }
+                        None => { None },
+                    }
                 }
                 None => {
                     break;
@@ -304,32 +318,34 @@ impl<T> InOrderIterator<T> {
     }
 }
 
-impl<T> Iterator for InOrderIterator<T> {
+impl<T: Copy> Iterator for InOrderIterator<T> {
     type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {
             if self.current.is_some() {
-                let node = self.current.unwrap();
-                self.stack.push(node);
-                let cell: &RefCell<Node<T>> = node.borrow();
-                let node = cell.borrow();
-                match node.left {
-                    Some(left) => {
-                        self.current = Some(left);
+                self.current = {
+                    let node = self.current.as_ref().unwrap();
+                    self.stack.push(Rc::clone(&node));
+                    let cell: &RefCell<Node<T>> = node.borrow();
+                    let node = cell.borrow();
+                    match &node.left {
+                        Some(left) => {
+                            Some(Rc::clone(left))
+                        }
+                        None => {
+                            None
+                        }
                     }
-                    None => {
-                        self.current = None;
-                    }
-                }
+                };
             } else {
                 match self.stack.pop() {
                     Some(node) => {
                         let cell: &RefCell<Node<T>> = node.borrow();
                         let node = cell.borrow();
-                        match node.right {
+                        match &node.right {
                             Some(right) => {
-                                self.current = Some(right);
+                                self.current = Some(Rc::clone(right));
                             }
                             None => {
                                 self.current = None;
@@ -362,10 +378,10 @@ pub fn preorder_recursive<T: Display>(node: NodeRef<T>) {
     let node = cell.borrow();
     print!("{} ", node.value);
 
-    if let Some(left) = node.left {
+    if let Some(left) = node.left() {
         preorder_recursive(left);
     }
-    if let Some(right) = node.right {
+    if let Some(right) = node.right() {
         preorder_recursive(right);
     }
 }
@@ -378,19 +394,22 @@ where
     if root.is_none() {
         return;
     }
+
+    let root = root.unwrap();
+    let root_height = height(Some(Rc::clone(&root)));
+
     let mut stack: Vec<NodeRef<T>> = Vec::new();
-    stack.push(root.unwrap());
-    let root_height = height(root);
+    stack.push(root);
 
     while let Some(node) = stack.pop() {
-        let h = height(Some(node));
+        let h = height(Some(Rc::clone(&node)));
         let cell: &RefCell<Node<T>> = node.borrow();
         let node = cell.borrow();
         call_me(&node.value, root_height - h);
-        if let Some(right) = node.right {
+        if let Some(right) = node.right() {
             stack.push(right);
         }
-        if let Some(left) = node.left {
+        if let Some(left) = node.left() {
             stack.push(left);
         }
     }
@@ -417,7 +436,7 @@ impl<T: Copy> Iterator for PreOrderIterator<T> {
         if let Some(node) = self.stack.pop() {
             let cell: &RefCell<Node<T>> = node.borrow();
             let node = cell.borrow();
-            if let Some(right) = node.right {
+            if let Some(right) = node.right() {
                 self.stack.push(right);
             }
             if let Some(left) = node.left() {
@@ -446,10 +465,10 @@ where
 {
     let cell: &RefCell<Node<T>> = node.borrow();
     let node = cell.borrow();
-    if let Some(left) = node.left {
+    if let Some(left) = node.left() {
         postorder_recursive(left);
     }
-    if let Some(right) = node.right {
+    if let Some(right) = node.right() {
         postorder_recursive(right);
     }
     print!("{} ", &node.value);
@@ -465,32 +484,35 @@ where
 
 pub fn postorder_iterative<T, F>(root: Option<NodeRef<T>>, mut call_me: F)
 where
-    T: Display,
+    T: Display + Copy,
     F: FnMut(T, isize),
 {
     if root.is_none() {
         return;
     }
+
+    let root = root.unwrap();
+    let root_height = height(Some(Rc::clone(&root)));
+
     let mut stack: Vec<NodeRef<T>> = Vec::new();
-    stack.push(root.unwrap());
-    let root_height = height(root);
+    stack.push(root);
     let mut stack_two: Vec<NodeRef<T>> = Vec::new();
 
     while let Some(node) = stack.pop() {
-        stack_two.push(node);
+        stack_two.push(Rc::clone(&node));
         let cell: &RefCell<Node<T>> = node.borrow();
         let node = cell.borrow();
 
-        if let Some(left) = node.left {
+        if let Some(left) = node.left() {
             stack.push(left);
         }
-        if let Some(right) = node.right {
+        if let Some(right) = node.right() {
             stack.push(right);
         }
     }
 
     while let Some(node) = stack_two.pop() {
-        let h = height(Some(node));
+        let h = height(Some(Rc::clone(&node)));
         let cell: &RefCell<Node<T>> = node.borrow();
         let node = cell.borrow();
         call_me(node.value, root_height - h);
@@ -510,13 +532,13 @@ impl<T> PostOrderIterator<T> {
         };
         i.stack.push(root);
         while let Some(node) = i.stack.pop() {
-            i.stack_two.push(node);
+            i.stack_two.push(Rc::clone(&node));
             let cell: &RefCell<Node<T>> = node.borrow();
             let node = cell.borrow();
-            if let Some(left) = node.left {
+            if let Some(left) = node.left() {
                 i.stack.push(left);
             }
-            if let Some(right) = node.right {
+            if let Some(right) = node.right() {
                 i.stack.push(right);
             }
         }
@@ -550,7 +572,7 @@ pub fn levelorder_recursive<T: Display>(node: Option<NodeRef<T>>) {
         return;
     }
     let node = node.unwrap();
-    let h = height(Some(node));
+    let h = height(Some(Rc::clone(&node)));
     for i in 1..=h {
         print!("l:{} ", i);
         let cell: &RefCell<Node<T>> = node.borrow();
@@ -562,6 +584,7 @@ pub fn levelorder_recursive<T: Display>(node: Option<NodeRef<T>>) {
 
 pub fn levelorder_iterative<T, F>(root: Option<NodeRef<T>>, mut call_me: F)
 where
+    T: Copy,
     F: FnMut(T),
 {
     if root.is_none() {
@@ -574,10 +597,10 @@ where
         let cell: &RefCell<Node<T>> = node.borrow();
         let node = cell.borrow();
         call_me(node.value);
-        if let Some(left) = node.left {
+        if let Some(left) = node.left() {
             queue.push_back(left);
         }
-        if let Some(right) = node.right {
+        if let Some(right) = node.right() {
             queue.push_back(right);
         }
     }
@@ -607,10 +630,10 @@ impl<T: Copy> Iterator for LevelOrderIterator<T> {
             let cell: &RefCell<Node<T>> = node.borrow();
             let node = cell.borrow();
 
-            if let Some(left) = node.left {
+            if let Some(left) = node.left() {
                 self.queue.push_back(left);
             }
-            if let Some(right) = node.right {
+            if let Some(right) = node.right() {
                 self.queue.push_back(right);
             }
             Some(node.value)
@@ -666,8 +689,8 @@ pub fn invert_tree<T: Clone>(root: Option<NodeRef<T>>) -> Option<NodeRef<T>> {
             let node = cell.borrow();
             Some(Rc::new(RefCell::new(Node {
                 value: node.value.clone(),
-                left: invert_tree(node.right),
-                right: invert_tree(node.left),
+                left: invert_tree(node.right()),
+                right: invert_tree(node.left()),
             })))
         },
         None => None,
@@ -686,8 +709,8 @@ pub fn max_depth<T>(root: Option<NodeRef<T>>) -> isize {
     let cell: &RefCell<Node<T>> = root.borrow();
     let node = cell.borrow();
 
-    let l_depth = max_depth(node.left);
-    let r_depth = max_depth(node.right);
+    let l_depth = max_depth(node.left());
+    let r_depth = max_depth(node.right());
     std::cmp::max(l_depth, r_depth) + 1
 }
 
@@ -716,10 +739,10 @@ pub fn max_width<T>(root: Option<NodeRef<T>>) -> usize {
             let current = cell.borrow();
 
             if current.left.is_some() {
-                queue.push_back(current.left.unwrap());
+                queue.push_back(current.left().unwrap());
             }
             if current.right.is_some() {
-                queue.push_back(current.right.unwrap());
+                queue.push_back(current.right().unwrap());
             }
             nodes_in_level -= 1;
         }
@@ -745,8 +768,8 @@ fn traverse<T>(root: Option<NodeRef<T>>, max: &mut isize) -> isize {
     let cell: &RefCell<Node<T>> = root.borrow();
     let root = cell.borrow();
 
-    let left = traverse(root.left, max);
-    let right = traverse(root.right, max);
+    let left = traverse(root.left(), max);
+    let right = traverse(root.right(), max);
     if left + right > *max {
         *max = left + right;
     }
@@ -786,15 +809,15 @@ where
         return Some(root.value().clone());
     }
     if root.left().is_some() && root.right.is_some() {
-        let left = tree_sum(root.left).unwrap();
-        let right = tree_sum(root.right).unwrap();
+        let left = tree_sum(root.left()).unwrap();
+        let right = tree_sum(root.right()).unwrap();
         return Some(root.value().clone() + left + right);
     }
     if root.left().is_some() {
-        let left = tree_sum(root.left).unwrap();
+        let left = tree_sum(root.left()).unwrap();
         return Some(root.value().clone() + left);
     } else {
-        let right = tree_sum(root.right).unwrap();
+        let right = tree_sum(root.right()).unwrap();
         return Some(root.value().clone() + right);
     }
 }
@@ -853,16 +876,16 @@ where
         return Some(root.value().clone());
     }
     if root.left().is_some() && root.right.is_some() {
-        let left = minimum(root.left).unwrap();
-        let right = minimum(root.right).unwrap();
+        let left = minimum(root.left()).unwrap();
+        let right = minimum(root.right()).unwrap();
         let value = root.value.clone();
         return Some(min2(min2(left, right), value));
     }
     if root.left().is_some() {
-        let left = minimum(root.left).unwrap();
+        let left = minimum(root.left()).unwrap();
         return Some(min2(root.value.clone(), left));
     } else {
-        let right = minimum(root.right).unwrap();
+        let right = minimum(root.right()).unwrap();
         return Some(min2(root.value.clone(), right));
     }
 }
@@ -887,18 +910,20 @@ where
         return Some(root.value().clone());
     }
     if root.left().is_some() && root.right.is_some() {
-        let left = max_path_sum(root.left);
-        let right = max_path_sum(root.right);
+        let left = max_path_sum(root.left());
+        let right = max_path_sum(root.right());
         let max_child: T = std::cmp::max(left.unwrap(), right.unwrap());
         let max_child_path_sum = root.value().clone();
         return Some(max_child + max_child_path_sum);
     }
     if root.left().is_some() {
-        let cell: &RefCell<Node<T>> = root.left().unwrap().borrow();
+        let left = root.left().unwrap();
+        let cell: &RefCell<Node<T>> = left.borrow();
         let left = cell.borrow();
         return Some(root.value().clone() + left.value().clone());
     } else {
-        let cell: &RefCell<Node<T>> = root.right().unwrap().borrow();
+        let right = root.right().unwrap();  // idk seems suspicious
+        let cell: &RefCell<Node<T>> = right.borrow();
         let right = cell.borrow();
         return Some(root.value().clone() + right.value().clone());
     }

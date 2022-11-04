@@ -27,9 +27,9 @@ fn left_nav_node<T>(in_node: Rc<RefCell<NavigableNode<T>>>) -> Option<Rc<RefCell
         None
     }
 }
-/*
+
 impl <T> NavigableNode<T> {
-    fn left(&self) -> Option<Rc<RefCell<NavigableNode<T>>>> {
+    /*fn left(&self) -> Option<Rc<RefCell<NavigableNode<T>>>> {
 
         let cell: &RefCell<Node<T>> = self.node.borrow();
         let node = cell.borrow();
@@ -55,9 +55,18 @@ impl <T> NavigableNode<T> {
         } else {
             None
         }
+    }*/
+    fn parent(&self) -> Option<Rc<RefCell<NavigableNode<T>>>> { 
+        match &self.parent {
+            Some(p) => {
+                Some(Rc::clone(p))
+            },
+            None => {
+                None
+            }
+        }
     }
 }
-*/
 
 fn navigate<T>(root: NodeRef<T>) -> NavigableNode<T> {
     NavigableNode { node: root, parent: None }
@@ -100,13 +109,13 @@ impl<T> Iterator for LevelOrderIteratorWithParents<T>
             if let Some(left) = node.left() {
                 self.queue.push_back(Rc::new(RefCell::new(NavigableNode {
                     node: left,
-                    parent: nav_node.parent,
+                    parent: nav_node.parent(),
                 })));
             }
             if let Some(right) = node.right() {
                 self.queue.push_back(Rc::new(RefCell::new(NavigableNode {
                     node: right,
-                    parent: nav_node.parent,
+                    parent: nav_node.parent(),
                 })));
             }
             Some(node.value)
