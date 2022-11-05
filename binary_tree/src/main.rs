@@ -5,6 +5,9 @@
 use binary_tree::tree::*;
 use binary_tree::tree::height;
 use binary_tree::tree_creation::*;
+use std::rc::Rc;
+use std::cell::RefCell;
+use std::borrow::Borrow;
 //{InOrderIterator, Node, PreOrderIterator, PostOrderIterator, LevelOrderIterator};
 
 
@@ -12,8 +15,8 @@ use binary_tree::tree_creation::*;
 fn main() {
     println!("Hello Trees");
     let tree = make_num_tree_7();
-    let tree_box = Box::new(tree);
-
+    let tree = Some(Rc::new(RefCell::new(tree)));
+    //tree.print_recursive(0);
     levelorder_recursive_print(Some(&tree_box));
     let tree_2 = balanced(&tree_box);
     let tree_2_box = Box::new(tree_2);
@@ -36,6 +39,7 @@ fn main() {
     println!("balanced of above");
     levelorder_recursive_print(Some(&tree_4_box));
     //insert
+
     /*
     let mut counter = 1;
     let tree = generate_tree(4, &mut counter).unwrap();
@@ -57,16 +61,22 @@ fn main() {
 
 fn print_everything() {
     let mut counter = 1;
-    let tree = generate_tree(3, &mut counter);
+    let tree = generate_tree(3, &mut counter).unwrap();
     //let inverted = invert_tree(&tree);
-    let root = tree.as_ref().unwrap();
-    println!("left {}", root.left().unwrap().value());
+
+    let cell: &RefCell<Node<i32>> = tree.borrow();
+    let root = cell.borrow();
+
+    let left: NodeRef<i32> = root.left().unwrap();
+    let cell: &RefCell<Node<i32>> = left.borrow();
+    let left = cell.borrow();
+    println!("left {}", left.value);
 
     println!("----print-recursive------------");
     root.print_recursive(0);
 
     println!("----print-iterative------------");
-    inorder_iterative(tree.as_ref(), |node, level| {
+    inorder_iterative(Some(Rc::clone(&tree)), |node, level| {
         for _ in 0..level {
             print!("  ");
         }
@@ -74,75 +84,75 @@ fn print_everything() {
     });
 
     println!("----inorder-recursive----------");
-    inorder_recursive(tree.as_ref().unwrap());
+    inorder_recursive(Rc::clone(&tree));
     println!();
     println!("----inorder-iterative----------");
-    inorder_iterative(tree.as_ref(), |node, _level| {
+    inorder_iterative(Some(Rc::clone(&tree)), |node, _level| {
         print!("{} ", node);
     });
     println!();
     println!("----InOrderIterator------------");
-    let it = InOrderIterator::new(root);
+    let it = InOrderIterator::new(Rc::clone(&tree));
     for i in it {
-        print!("{} ", *i);
+        print!("{} ", i);
     }
     println!();
     println!();
 
     println!("----preorder-recursive---------");
-    preorder_recursive(tree.as_ref().unwrap());
+    preorder_recursive(Rc::clone(&tree));
     println!();
     println!("----preorder-iterative---------");
-    preorder_iterative(tree.as_ref(), |node, _level| {
+    preorder_iterative(Some(Rc::clone(&tree)), |node, _level| {
         print!("{} ", node);
     });
     println!();
     println!("----PreOrderIterator-----------");
-    let it = PreOrderIterator::new(root);
+    let it = PreOrderIterator::new(Rc::clone(&tree));
     for i in it {
-        print!("{} ", *i);
+        print!("{} ", i);
     }
     println!();
     println!();
 
     println!("----postorder-recursive--------");
-    postorder_recursive(tree.as_ref().unwrap());
+    postorder_recursive(Rc::clone(&tree));
     println!();
     println!("----postorder-iterative--------");
-    postorder_iterative(tree.as_ref(), |node, _level| {
+    postorder_iterative(Some(Rc::clone(&tree)), |node, _level| {
         print!("{} ", node);
     });
     println!();
     println!("----PostOrderIterator----------");
-    let it = PostOrderIterator::new(root);
+    let it = PostOrderIterator::new(Rc::clone(&tree));
     for i in it {
-        print!("{} ", *i);
+        print!("{} ", i);
     }
     println!();
     println!();
 
     println!("----levelorder-recursive-------");
-    levelorder_recursive_print(tree.as_ref());
+    levelorder_recursive(Some(Rc::clone(&tree)));
     println!();
     println!("----levelorder-iterative-------");
-    levelorder_iterative(tree.as_ref(), |node| {
+    levelorder_iterative(Some(Rc::clone(&tree)), |node| {
         print!("{} ", node);
     });
     println!();
     println!("----LevelOrderIterator---------");
-    let it = LevelOrderIterator::new(root);
+    let it = LevelOrderIterator::new(Rc::clone(&tree));
     for i in it {
-        print!("{} ", *i);
+        print!("{} ", i);
     }
     println!();
 
     println!();
     println!(
         "{} - height",
-        height(Some(tree.as_ref().unwrap()))
+        height(Some(Rc::clone(&tree)))
     );
     println!(
         "{} - height iterative",
-        tree.as_ref().unwrap().height_iterative()
+        height_iterative(Rc::clone(&tree))
     );
 }
