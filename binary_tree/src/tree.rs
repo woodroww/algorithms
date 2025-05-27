@@ -2,9 +2,7 @@ use std::collections::VecDeque;
 use std::fmt::Display;
 use std::rc::Rc;
 use std::borrow::Borrow;
-use std::borrow::BorrowMut;
 use std::cell::RefCell;
-
 
 /// A tree implementation
 // Leetcode Definition for a binary tree node.
@@ -102,27 +100,13 @@ impl<T> Node<T>
 where
     T: std::cmp::PartialEq + std::cmp::PartialOrd + Copy,
 {
-    pub fn from_array(arr: &Vec<T>) -> Node<T> {
+    pub fn from_array(arr: &Vec<T>) -> NodeRef<T> {
         let mut iter = arr.iter();
         let mut tree = Node::new(*iter.nth(0).unwrap());
         while let Some(item) = iter.next() {
             tree.insert(*item);
         }
-        tree
-    }
-}
-
-impl<T> Node<T>
-where
-    T: std::cmp::PartialEq + std::cmp::PartialOrd + Copy,
-{
-    pub fn from_array(arr: &Vec<T>) -> Node<T> {
-        let mut iter = arr.iter();
-        let mut tree = Node::new(*iter.nth(0).unwrap());
-        while let Some(item) = iter.next() {
-            tree.insert(*item);
-        }
-        tree
+        Rc::new(RefCell::new(tree))
     }
 }
 
@@ -165,15 +149,15 @@ where
     }
 }
 
-pub fn balanced<T: Copy + std::fmt::Display>(root: &Node<T>) -> Node<T> {
-    let arr: Vec<&Node<T>> = InOrderNodeIterator::new(root).collect();
+pub fn balanced<T: Copy + std::fmt::Display>(root: NodeRef<T>) -> NodeRef<T> {
+    let arr: Vec<NodeRef<T>> = InOrderNodeIterator::new(root).collect();
     let upper = arr.len() - 1;
     build_balanced(&arr, 0, upper).unwrap()
 }
 
 // https://algodaily.com/lessons/how-do-we-get-a-balanced-binary-tree
 
-fn build_balanced<T: Copy>(arr: &Vec<&Node<T>>, lower: usize, upper: usize) -> Option<Node<T>> {
+fn build_balanced<T: Copy>(arr: &Vec<NodeRef<T>>, lower: usize, upper: usize) -> Option<NodeRef<T>> {
     let test_size = upper as isize - lower as isize + 1;
     if test_size <= 0 {
         return None;
@@ -181,28 +165,30 @@ fn build_balanced<T: Copy>(arr: &Vec<&Node<T>>, lower: usize, upper: usize) -> O
 
     let size = upper - lower + 1;
     let mid = (size / 2) + lower;
+    let cell: &RefCell<Node<T>> = arr[mid].borrow();
+    let node = cell.borrow();
     let mut subtree_root = Node {
-        value: arr[mid].value,
+        value: node.value,
         left: None,
         right: None,
     };
     if mid > 0 {
         let left = build_balanced(arr, lower, mid - 1);
         if let Some(l) = left {
-            subtree_root.left = Some(Box::new(l));
+            subtree_root.left = Some(l);
         }
     }
     let right = build_balanced(arr, mid + 1, upper);
     if let Some(r) = right {
-        subtree_root.right = Some(Box::new(r));
+        subtree_root.right = Some(r);
     }
 
-    Some(subtree_root)
+    Some(Rc::new(RefCell::new(subtree_root)))
 }
 
-pub fn height<T>(root: Option<&NodeRef<T>>) -> isize {
+pub fn height<T>(root: Option<NodeRef<T>>) -> isize {
     if root.is_none() {
-        return -1;
+        return 0;// changed this to 0 from -1 to get levelorder_recursive to print all the levels
     }
     let root = root.unwrap();
     let cell: &RefCell<Node<T>> = root.borrow();
@@ -359,13 +345,13 @@ where
     }
 }
 
-pub struct InOrderNodeIterator<'a, T> {
-    stack: Vec<&'a Node<T>>,
-    current: Option<&'a Node<T>>,
+pub struct InOrderNodeIterator<T> {
+    stack: Vec<NodeRef<T>>,
+    current: Option<NodeRef<T>>,
 }
 
-impl<'a, T> InOrderNodeIterator<'a, T> {
-    pub fn new(root: &'a Node<T>) -> Self {
+impl<T> InOrderNodeIterator<T> {
+    pub fn new(root: NodeRef<T>) -> Self {
         Self {
             stack: Vec::new(),
             current: Some(root),
@@ -373,17 +359,19 @@ impl<'a, T> InOrderNodeIterator<'a, T> {
     }
 }
 
-impl<'a, T> Iterator for InOrderNodeIterator<'a, T> {
-    type Item = &'a Node<T>;
+impl<T> Iterator for InOrderNodeIterator<T> {
+    type Item = NodeRef<T>;
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {
             if self.current.is_some() {
-                let node = self.current.unwrap();
-                self.stack.push(node);
+                let node = Rc::clone(self.current.as_ref().unwrap());
+                self.stack.push(Rc::clone(&node));
+                let cell: &RefCell<Node<T>> = node.borrow();
+                let node = cell.borrow();
                 match &node.left {
                     Some(left) => {
-                        self.current = Some(left.as_ref());
+                        self.current = Some(Rc::clone(left));
                     }
                     None => {
                         self.current = None;
@@ -392,126 +380,9 @@ impl<'a, T> Iterator for InOrderNodeIterator<'a, T> {
             } else {
                 match self.stack.pop() {
                     Some(node) => {
-                        match &node.right {
-                            Some(right) => {
-                                self.current = Some(right.as_ref());
-                            }
-                            None => {
-                                self.current = None;
-                            }
-                        }
-                        return Some(node.value);
-                    }
-                    None => {
-                        break;
-                    }
-                }
-            }
-        }
-        None
-    }
-}
-
-/// An inorder iterator
-pub struct InOrderIterator<T> {
-    stack: Vec<NodeRef<T>>,
-    current: Option<NodeRef<T>>,
-}
-
-impl<T> InOrderIterator<T> {
-    /// return a new iterator
-    pub fn new(root: NodeRef<T>) -> Self {
-        Self {
-            stack: Vec::new(),
-            current: Some(root),
-        }
-    }
-}
-
-impl<T: Copy> Iterator for InOrderIterator<T> {
-    type Item = T;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        loop {
-            if self.current.is_some() {
-                self.current = {
-                    let node = self.current.as_ref().unwrap();
-                    self.stack.push(Rc::clone(&node));
-                    let cell: &RefCell<Node<T>> = node.borrow();
-                    let node = cell.borrow();
-                    match &node.left {
-                        Some(left) => {
-                            Some(Rc::clone(left))
-                        }
-                        None => {
-                            None
-                        }
-                    }
-                };            } else {
-                match self.stack.pop() {
-                    Some(node) => {
-                        match &node.right {
-                            Some(right) => {
-                                self.current = Some(right.as_ref());
-                            }
-                            None => {
-                                self.current = None;
-                            }
-                        }
-                        return Some(node);
-                    }
-                    None => {
-                        break;
-                    }
-                }
-            }
-        }
-        None
-    }
-}
-
-/// An inorder iterator
-pub struct InOrderIterator<T> {
-    stack: Vec<NodeRef<T>>,
-    current: Option<NodeRef<T>>,
-}
-
-impl<T> InOrderIterator<T> {
-    /// return a new iterator
-    pub fn new(root: NodeRef<T>) -> Self {
-        Self {
-            stack: Vec::new(),
-            current: Some(root),
-        }
-    }
-}
-
-impl<T: Copy> Iterator for InOrderIterator<T> {
-    type Item = T;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        loop {
-            if self.current.is_some() {
-                self.current = {
-                    let node = self.current.as_ref().unwrap();
-                    self.stack.push(Rc::clone(&node));
-                    let cell: &RefCell<Node<T>> = node.borrow();
-                    let node = cell.borrow();
-                    match &node.left {
-                        Some(left) => {
-                            Some(Rc::clone(left))
-                        }
-                        None => {
-                            None
-                        }
-                    }
-                };
-            } else {
-                match self.stack.pop() {
-                    Some(node) => {
                         let cell: &RefCell<Node<T>> = node.borrow();
-                        let node = cell.borrow();
-                        match &node.right {
+                        let borrow_node = cell.borrow();
+                        match &borrow_node.right {
                             Some(right) => {
                                 self.current = Some(Rc::clone(right));
                             }
@@ -519,7 +390,54 @@ impl<T: Copy> Iterator for InOrderIterator<T> {
                                 self.current = None;
                             }
                         }
-                        return Some(node.value);
+                        return Some(Rc::clone(&node));
+                    }
+                    None => {
+                        break;
+                    }
+                }
+            }
+        }
+        None
+    }
+}
+
+/// An inorder iterator
+pub struct InOrderIterator<T> {
+    stack: Vec<NodeRef<T>>,
+    current: Option<NodeRef<T>>,
+}
+
+impl<T> InOrderIterator<T> {
+    /// return a new iterator
+    pub fn new(root: NodeRef<T>) -> Self {
+        Self {
+            stack: Vec::new(),
+            current: Some(root),
+        }
+    }
+}
+
+impl<T: Copy> Iterator for InOrderIterator<T> {
+    type Item = T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            if self.current.is_some() {
+                self.current = {
+                    let node = self.current.as_ref().unwrap();
+                    self.stack.push(Rc::clone(node));
+                    let cell: &RefCell<Node<T>> = node.borrow();
+                    let node = cell.borrow();
+                    node.left()
+                }; 
+            } else {
+                match self.stack.pop() {
+                    Some(node) => {
+                        let cell: &RefCell<Node<T>> = node.borrow();
+                        let borrow_node = cell.borrow();
+                        self.current = borrow_node.right();
+                        return Some(borrow_node.value);
                     }
                     None => {
                         break;
@@ -735,12 +653,12 @@ impl<T: Copy> Iterator for PostOrderIterator<T> {
 Commentary
 */
 
-pub fn levelorder_recursive<T: Display>(node: Option<&NodeRef<T>>) {
+pub fn levelorder_recursive<T: Display>(node: Option<NodeRef<T>>) {
     if node.is_none() {
         return;
     }
-    let node = node.as_ref().unwrap();
-    let h = height(Some(node));
+    let node = node.unwrap();
+    let h = height(Some(Rc::clone(&node)));
     for i in 1..=h {
         print!("l:{} ", i);
         let cell: &RefCell<Node<T>> = node.borrow();
@@ -805,6 +723,42 @@ impl<T: Copy> Iterator for LevelOrderIterator<T> {
                 self.queue.push_back(right);
             }
             Some(node.value)
+        } else {
+            None
+        }
+    }
+}
+
+// breadth first
+pub struct LevelOrderNodeIterator<T> {
+    queue: VecDeque<NodeRef<T>>,
+}
+
+impl<T> LevelOrderNodeIterator<T> {
+    pub fn new(root: NodeRef<T>) -> Self {
+        let mut i = Self {
+            queue: VecDeque::new(),
+        };
+        i.queue.push_back(root);
+        i
+    }
+}
+
+impl<T> Iterator for LevelOrderNodeIterator<T> {
+    type Item = NodeRef<T>;
+    fn next(&mut self) -> Option<Self::Item> {
+        if !self.queue.is_empty() {
+            let node = self.queue.pop_front().unwrap();
+            let cell: &RefCell<Node<T>> = node.borrow();
+            let node_borrow = cell.borrow();
+
+            if let Some(left) = node_borrow.left() {
+                self.queue.push_back(left);
+            }
+            if let Some(right) = node_borrow.right() {
+                self.queue.push_back(right);
+            }
+            Some(Rc::clone(&node))
         } else {
             None
         }

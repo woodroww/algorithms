@@ -15,29 +15,25 @@ use std::borrow::Borrow;
 fn main() {
     println!("Hello Trees");
     let tree = make_num_tree_7();
-    let tree = Some(Rc::new(RefCell::new(tree)));
-    //tree.print_recursive(0);
-    levelorder_recursive_print(Some(&tree_box));
-    let tree_2 = balanced(&tree_box);
-    let tree_2_box = Box::new(tree_2);
+    let tree = Rc::new(RefCell::new(tree));
+    levelorder_recursive(Some(Rc::clone(&tree)));
+    let tree_2 = balanced(Rc::clone(&tree));
 
     println!("balanced of above");
-    levelorder_recursive_print(Some(&tree_2_box));
+    levelorder_recursive(Some(tree_2));
     
-    let arr: Vec<i32> = InOrderIterator::new(&tree_box)
+    let arr: Vec<i32> = InOrderIterator::new(Rc::clone(&tree))
         .map(|x| x.to_owned())
         .collect();
 
     let tree_3 = Node::from_array(&arr);
-    let tree_3_box = Box::new(tree_3);
     println!("created by inserting so should be in order");
-    levelorder_recursive_print(Some(&tree_3_box));
+    levelorder_recursive(Some(Rc::clone(&tree_3)));
 
-    let tree_4 = balanced(&tree_3_box);
-    let tree_4_box = Box::new(tree_4);
+    let tree_4 = balanced(tree_3);
 
     println!("balanced of above");
-    levelorder_recursive_print(Some(&tree_4_box));
+    levelorder_recursive(Some(tree_4));
     //insert
 
     /*

@@ -1,1 +1,22 @@
-build/compile_commands.json
+[
+{
+  "directory": "/Users/matt/prog/algorithms/high_scores/build",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++  -isystem /usr/local/include  -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk -fPIE -std=gnu++14 -o CMakeFiles/tests.dir/test.cpp.o -c /Users/matt/prog/algorithms/high_scores/test.cpp",
+  "file": "/Users/matt/prog/algorithms/high_scores/test.cpp"
+},
+{
+  "directory": "/Users/matt/prog/algorithms/high_scores/build",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++  -isystem /usr/local/include  -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk -fPIE -std=gnu++14 -o CMakeFiles/tests.dir/high_scores.cpp.o -c /Users/matt/prog/algorithms/high_scores/high_scores.cpp",
+  "file": "/Users/matt/prog/algorithms/high_scores/high_scores.cpp"
+},
+{
+  "directory": "/Users/matt/prog/algorithms/high_scores/build",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++    -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk -fPIE -std=gnu++11 -o CMakeFiles/high_scores.dir/main.cpp.o -c /Users/matt/prog/algorithms/high_scores/main.cpp",
+  "file": "/Users/matt/prog/algorithms/high_scores/main.cpp"
+},
+{
+  "directory": "/Users/matt/prog/algorithms/high_scores/build",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++    -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk -fPIE -std=gnu++11 -o CMakeFiles/high_scores.dir/high_scores.cpp.o -c /Users/matt/prog/algorithms/high_scores/high_scores.cpp",
+  "file": "/Users/matt/prog/algorithms/high_scores/high_scores.cpp"
+}
+]

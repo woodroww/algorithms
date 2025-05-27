@@ -6,9 +6,9 @@ use std::collections::VecDeque;
 
 // https://stackoverflow.com/questions/36167160/how-do-i-express-mutually-recursive-data-structures-in-safe-rust/36168774#36168774
 
-struct NavigableNode<T> {
-    node: NodeRef<T>,
-    parent: Option<Rc<RefCell<NavigableNode<T>>>>,
+pub struct NavigableNode<T> {
+    pub node: NodeRef<T>,
+    pub parent: Option<Rc<RefCell<NavigableNode<T>>>>,
 }
 
 fn left_nav_node<T>(in_node: Rc<RefCell<NavigableNode<T>>>) -> Option<Rc<RefCell<NavigableNode<T>>>> { 
@@ -74,9 +74,6 @@ fn navigate<T>(root: NodeRef<T>) -> NavigableNode<T> {
 
 
 // breadth first
-// `<'a: 'b, 'b>` reads as lifetime `'a` is at least as long as `'b`.
-
-// 'a will outlive this structure
 pub struct LevelOrderIteratorWithParents<T> {
     queue: VecDeque<Rc<RefCell<NavigableNode<T>>>>,
 }
@@ -93,32 +90,30 @@ impl<T> LevelOrderIteratorWithParents<T> {
 }
 
 impl<T> Iterator for LevelOrderIteratorWithParents<T>
-    where
-        T: Copy
 {
-    type Item = T;
+    type Item = Rc<RefCell<NavigableNode<T>>>;
     fn next(&mut self) -> Option<Self::Item> {
         if !self.queue.is_empty() {
             let nav_node = self.queue.pop_front().unwrap();
             let nav_cell: &RefCell<NavigableNode<T>> = nav_node.borrow();
-            let nav_node = nav_cell.borrow();
+            let nav_borrow = nav_cell.borrow();
 
-            let cell: &RefCell<Node<T>> = nav_node.node.borrow();
+            let cell: &RefCell<Node<T>> = nav_borrow.node.borrow();
             let node = cell.borrow();
 
             if let Some(left) = node.left() {
                 self.queue.push_back(Rc::new(RefCell::new(NavigableNode {
                     node: left,
-                    parent: nav_node.parent(),
+                    parent: Some(Rc::clone(&nav_node)),
                 })));
             }
             if let Some(right) = node.right() {
                 self.queue.push_back(Rc::new(RefCell::new(NavigableNode {
                     node: right,
-                    parent: nav_node.parent(),
+                    parent: Some(Rc::clone(&nav_node)),
                 })));
             }
-            Some(node.value)
+            Some(Rc::clone(&nav_node))
         } else {
             None
         }
